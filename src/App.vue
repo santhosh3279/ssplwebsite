@@ -54,7 +54,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
     <span role="status">{{ uploadMessage || 'PNG, JPG or WebP · Up to 5 MB' }}</span>
   </div>
   <header class="header wrap">
-    <a class="brand" href="#home" aria-label="Chettiyar Kada home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span>CHETTIYAR KADA<small>PALAKKAD, KERALA</small></span></a>
+    <a class="brand" href="#home" aria-label="Chettiyar Kada home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span class="brand-name">CHETTIYAR KADA<small>PALAKKAD, KERALA</small></span></a>
     <button class="menu-toggle" @click="menuOpen = !menuOpen" :aria-expanded="menuOpen" aria-controls="navigation">Menu ☰</button>
     <nav id="navigation" :class="{ open: menuOpen }" aria-label="Main navigation"><a href="#home" :aria-current="page === 'home' ? 'page' : undefined">Home</a><a href="#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="#about" :aria-current="page === 'about' ? 'page' : undefined">About us</a><a class="nav-visit" href="#contact">Visit us <span>↗</span></a></nav>
   </header>
@@ -82,5 +82,5 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       </div>
     </section>
   </main>
-  <footer><div class="wrap footer-main"><a class="brand" href="#home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span>CHETTIYAR KADA<small>THREE SHOPS. ONE FAMILIAR NAME.</small></span></a><div><a href="#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="#about">About us</a><a href="#contact">Contact</a></div></div><div class="wrap footer-bottom"><span>© {{ new Date().getFullYear() }} Chettiyar Kada. All rights reserved.</span><span>With warmth, from Palakkad. <b>✳</b></span></div></footer>
+  <footer><div class="wrap footer-main"><a class="brand" href="#home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span class="brand-name">CHETTIYAR KADA<small>THREE SHOPS. ONE FAMILIAR NAME.</small></span></a><div><a href="#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="#about">About us</a><a href="#contact">Contact</a></div></div><div class="wrap footer-bottom"><span>© {{ new Date().getFullYear() }} Chettiyar Kada. All rights reserved.</span><span>With warmth, from Palakkad. <b>✳</b></span></div></footer>
 </template>
