@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { shops, catalogue, gallery } from './content'
 import logo from './logo.json'
+import itemTopics from './items.json'
 const isDevelopment = import.meta.env.DEV
 const logoUrl = ref(logo.url)
 const logoInput = ref(null)
@@ -167,6 +168,29 @@ async function addGalleryPhoto() {
     savingPhoto.value = false
   }
 }
+const itemEditorOpen = ref(false)
+const itemTopic = ref('')
+const itemName = ref('')
+const savingItem = ref(false)
+const itemMessage = ref('')
+async function addItem() {
+  savingItem.value = true
+  itemMessage.value = ''
+  try {
+    const response = await fetch('/__dev/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: itemTopic.value, name: itemName.value }),
+    })
+    if (!response.ok) throw new Error(await response.text())
+    itemName.value = ''
+    itemMessage.value = 'Item added.'
+  } catch (error) {
+    itemMessage.value = error.message || 'Could not add the item.'
+  } finally {
+    savingItem.value = false
+  }
+}
 const route = ref(window.location.hash || '#home')
 const menuOpen = ref(false)
 const isGallery = /^\/gallery\/?$/.test(window.location.pathname)
@@ -238,7 +262,23 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
 
     <section v-if="page === 'home' || page === 'about'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2>Three names. <em>One family.</em></h2></div><p>Find your familiar favourite.<br>Discover somewhere new.</p></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="photo-space" :class="'photo-' + index"><img v-if="shop.photo" :src="shop.photo" :alt="shop.name" /><template v-else><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></template><span class="shop-number">0{{ index + 1 }}</span></div><div class="shop-details"><p class="eyebrow">CHETTIYAR KADA · PALAKKAD</p><h3>{{ shop.name }}</h3><a :href="'tel:+917012891724'">Enquire about this shop <span>↗</span></a></div></article></div></section>
 
-    <section v-if="page !== 'gallery'" id="catalogue-section" class="catalogue-section" :class="{ 'full-catalogue': page === 'catalogues' }"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">TAKE A CLOSER LOOK</p><h2>Our <em>catalogue.</em></h2></div><p>More to discover, all in one place.<br>Browse our shared catalogue online.</p></div><div class="catalogue-list"><div class="catalogue-row"><span class="catalogue-icon">▤</span><span class="catalogue-name"><small>ALL THREE SHOPS</small><h3>Chettiyar Kada Catalogue</h3></span><a v-if="catalogue.url" class="catalogue-link" :href="catalogue.url">View catalogue ↗</a><span v-else class="coming-soon">Coming soon <span>↗</span></span></div></div><p class="catalogue-help">Looking for something specific? <a href="tel:+917012891724">Give us a call →</a></p></div></section>
+    <section v-if="page !== 'gallery'" id="our-items" class="catalogue-section">
+      <div class="wrap">
+        <div class="section-heading"><div><h2>Our <em>Items</em></h2></div><button v-if="isDevelopment" class="button items-add-button" type="button" :aria-expanded="itemEditorOpen" aria-controls="items-editor" @click="itemEditorOpen = !itemEditorOpen">{{ itemEditorOpen ? 'Close editor' : 'Add topic / item' }}</button></div>
+        <form v-if="isDevelopment && itemEditorOpen" id="items-editor" class="gallery-editor" @submit.prevent="addItem">
+          <label for="item-topic">Topic</label>
+          <input id="item-topic" v-model="itemTopic" list="item-topics" maxlength="120" required :disabled="savingItem" placeholder="For example, Kitchenware" />
+          <datalist id="item-topics"><option v-for="topic in itemTopics" :key="topic.topic" :value="topic.topic" /></datalist>
+          <label for="item-name">Item name</label>
+          <input id="item-name" v-model="itemName" maxlength="120" required :disabled="savingItem" placeholder="For example, Brass cooking pot" />
+          <button class="button" type="submit" :disabled="savingItem">{{ savingItem ? 'Saving…' : 'Add item' }}</button>
+          <p role="status">{{ itemMessage }}</p>
+        </form>
+        <div v-if="itemTopics.length" class="items-grid"><article v-for="topic in itemTopics" :key="topic.topic" class="items-topic"><h3>{{ topic.topic }}</h3><ul><li v-for="item in topic.items" :key="item">{{ item }}</li></ul></article></div>
+        <p v-else class="items-empty">Our item collection is coming soon. Browse the catalogue to explore what’s available.</p>
+        <p class="catalogue-help"><a :href="catalogue.url">View full catalogue →</a></p>
+      </div>
+    </section>
 
     <section v-if="page !== 'gallery'" id="contact" class="contact wrap">
       <div><p class="eyebrow">COME SAY HELLO</p><h2>Use Maps to <em>Find Us</em></h2></div>

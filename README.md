@@ -64,3 +64,7 @@ In development, click **Rename** beside a gallery section, edit the section name
 The enlarged gallery viewer has previous/next arrow buttons and supports the keyboard Left/Right keys. Navigation follows gallery section order and wraps from the last photo to the first.
 
 In development, each gallery photo has a **Delete photo** button. Confirm to remove it from the gallery and delete its uploaded file. A section disappears when its last photo is deleted. Rebuild to publish deletions.
+
+## Our Items
+
+The Our Items section replaces the homepage catalogue panel. In development, click **Add topic / item**, enter a topic and item name, then **Add item**. Reuse a topic to list more items beneath it. Entries are saved in `src/items.json` and included in production builds; editing controls only appear in development. The full catalogue remains accessible through the catalogue links.
