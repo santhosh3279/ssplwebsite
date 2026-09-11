@@ -36,6 +36,41 @@ async function uploadLogo(event) {
     event.target.value = ''
   }
 }
+const photoHeading = ref('')
+const photoInput = ref(null)
+const savingPhoto = ref(false)
+const photoMessage = ref('')
+async function addGalleryPhoto() {
+  const file = photoInput.value.files?.[0]
+  if (!file || !photoHeading.value.trim()) { photoMessage.value = 'Choose a photo and enter its heading.'; return }
+  savingPhoto.value = true
+  photoMessage.value = ''
+  try {
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      throw new Error('Choose a PNG, JPG or WebP image smaller than 5 MB.')
+    }
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    bitmap.close()
+    const response = await fetch('/__dev/gallery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ heading: photoHeading.value.trim(), image: canvas.toDataURL('image/png').split(',')[1] }),
+    })
+    if (!response.ok) throw new Error(await response.text())
+    photoHeading.value = ''
+    photoInput.value.value = ''
+    photoMessage.value = 'Photo added.'
+  } catch (error) {
+    photoMessage.value = error.message || 'Could not add the photo. Please try again.'
+  } finally {
+    savingPhoto.value = false
+  }
+}
 const route = ref(window.location.hash || '#home')
 const menuOpen = ref(false)
 const isGallery = /^\/gallery\/?$/.test(window.location.pathname)
@@ -64,10 +99,20 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       <p class="eyebrow">A CLOSER LOOK AT CHETTIYAR KADA</p>
       <h1>Our <em>Gallery</em></h1>
       <p class="gallery-intro">Discover our shops and our collection of household articles.</p>
+      <form v-if="isDevelopment" class="gallery-editor" @submit.prevent="addGalleryPhoto">
+        <h2>Add a gallery photo</h2>
+        <label for="photo-heading">Photo heading</label>
+        <input id="photo-heading" v-model="photoHeading" type="text" maxlength="120" required :disabled="savingPhoto" placeholder="For example, Traditional kitchenware" />
+        <label for="gallery-photo">Photo</label>
+        <input id="gallery-photo" ref="photoInput" type="file" accept="image/png,image/jpeg,image/webp" required :disabled="savingPhoto" aria-describedby="photo-help" />
+        <p id="photo-help">PNG, JPG or WebP · Up to 5 MB</p>
+        <button class="button" type="submit" :disabled="savingPhoto">{{ savingPhoto ? 'Saving photo…' : 'Add photo' }}</button>
+        <p role="status">{{ photoMessage }}</p>
+      </form>
       <div v-if="gallery.length" class="gallery-grid">
         <figure v-for="photo in gallery" :key="photo.src">
           <a :href="photo.src" target="_blank" rel="noopener noreferrer" :aria-label="'View photo: ' + photo.alt"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></a>
-          <figcaption v-if="photo.caption">{{ photo.caption }}</figcaption>
+          <figcaption v-if="photo.caption"><h2>{{ photo.caption }}</h2></figcaption>
         </figure>
       </div>
       <div v-else class="gallery-empty"><span aria-hidden="true">▧</span><h2>Photos coming soon</h2><p>We’re getting our gallery ready. Visit us to explore the collection in person.</p><a class="button" href="/#contact">Find us</a></div>

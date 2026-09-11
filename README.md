@@ -51,6 +51,8 @@ Run `npm run dev` and click **Upload logo photo** above the header. Choose a PNG
 
 ## Gallery
 
-Visit `/gallery` using the Gallery link in the header or footer. Add images under `public/gallery/` and entries to the `gallery` array in `src/content.js` with `src`, descriptive `alt`, and optional `caption` fields. Until photos are added, the page shows “Photos coming soon”. Clicking a photo opens the full image in a new tab.
+Visit `/gallery` using the Gallery link in the header or footer. Add images under `public/gallery/` and entries to `src/gallery.json` with `src`, descriptive `alt`, and optional `caption` fields. Until photos are added, the page shows “Photos coming soon”. Clicking a photo opens the full image in a new tab.
 
 The production build also generates `dist/gallery/index.html`, so Nginx can serve `/gallery` (redirecting to `/gallery/`) with the existing `try_files $uri $uri/ =404` configuration.
+
+On the development gallery page, use **Add a gallery photo** to choose an image and enter its heading, then click **Add photo**. Photos are saved under `public/gallery/`, and headings in `src/gallery.json`. They persist across restarts and are included in the next production build. Upload controls and the endpoint are development-only.
