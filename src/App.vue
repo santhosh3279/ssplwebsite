@@ -36,19 +36,34 @@ async function uploadLogo(event) {
     event.target.value = ''
   }
 }
+const gallerySections = computed(() => {
+  const sections = new Map()
+  for (const photo of gallery) {
+    const name = (photo.section || photo.caption || 'Our collection').trim().replace(/\s+/g, ' ')
+    const key = name.toLowerCase()
+    if (!sections.has(key)) sections.set(key, { name, photos: [] })
+    sections.get(key).photos.push(photo)
+  }
+  return [...sections.values()]
+})
 const photoHeading = ref('')
 const photoInput = ref(null)
 const savingPhoto = ref(false)
 const photoMessage = ref('')
 async function addGalleryPhoto() {
-  const file = photoInput.value.files?.[0]
-  if (!file || !photoHeading.value.trim()) { photoMessage.value = 'Choose a photo and enter its heading.'; return }
+  const files = Array.from(photoInput.value.files || [])
+  const heading = photoHeading.value.trim()
+  if (!files.length || !heading) { photoMessage.value = 'Choose photos and enter a section name.'; return }
+  if (files.length > 20) { photoMessage.value = 'Choose up to 20 photos at a time.'; return }
   savingPhoto.value = true
   photoMessage.value = ''
   try {
+    const images = []
+    for (const file of files) {
     if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-      throw new Error('Choose a PNG, JPG or WebP image smaller than 5 MB.')
+      throw new Error('Each photo must be PNG, JPG or WebP and smaller than 5 MB.')
     }
+    photoMessage.value = `Preparing photo ${images.length + 1} of ${files.length}…`
     const bitmap = await createImageBitmap(file)
     const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
     const canvas = document.createElement('canvas')
@@ -56,15 +71,20 @@ async function addGalleryPhoto() {
     canvas.height = Math.max(1, Math.round(bitmap.height * scale))
     canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height)
     bitmap.close()
+    const image = canvas.toDataURL('image/png').split(',')[1]
+    if (image.length > 7 * 1024 * 1024) throw new Error('A converted photo is too large. Choose a smaller image.')
+    images.push(image)
+    }
+    photoMessage.value = `Saving ${files.length} photos…`
     const response = await fetch('/__dev/gallery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ heading: photoHeading.value.trim(), image: canvas.toDataURL('image/png').split(',')[1] }),
+      body: JSON.stringify({ heading, images }),
     })
     if (!response.ok) throw new Error(await response.text())
     photoHeading.value = ''
     photoInput.value.value = ''
-    photoMessage.value = 'Photo added.'
+    photoMessage.value = `${files.length} photos added to ${heading}.`
   } catch (error) {
     photoMessage.value = error.message || 'Could not add the photo. Please try again.'
   } finally {
@@ -100,20 +120,25 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       <h1>Our <em>Gallery</em></h1>
       <p class="gallery-intro">Discover our shops and our collection of household articles.</p>
       <form v-if="isDevelopment" class="gallery-editor" @submit.prevent="addGalleryPhoto">
-        <h2>Add a gallery photo</h2>
-        <label for="photo-heading">Photo heading</label>
-        <input id="photo-heading" v-model="photoHeading" type="text" maxlength="120" required :disabled="savingPhoto" placeholder="For example, Traditional kitchenware" />
-        <label for="gallery-photo">Photo</label>
-        <input id="gallery-photo" ref="photoInput" type="file" accept="image/png,image/jpeg,image/webp" required :disabled="savingPhoto" aria-describedby="photo-help" />
-        <p id="photo-help">PNG, JPG or WebP · Up to 5 MB</p>
-        <button class="button" type="submit" :disabled="savingPhoto">{{ savingPhoto ? 'Saving photo…' : 'Add photo' }}</button>
+        <h2>Add photos to a section</h2>
+        <label for="photo-heading">Section name</label>
+        <input id="photo-heading" list="gallery-sections" v-model="photoHeading" type="text" maxlength="120" required :disabled="savingPhoto" placeholder="For example, Traditional kitchenware" />
+        <datalist id="gallery-sections"><option v-for="section in gallerySections" :key="section.name" :value="section.name" /></datalist>
+        <label for="gallery-photo">Photos</label>
+        <input id="gallery-photo" ref="photoInput" type="file" multiple accept="image/png,image/jpeg,image/webp" required :disabled="savingPhoto" aria-describedby="photo-help" />
+        <p id="photo-help">Select up to 20 photos · PNG, JPG or WebP · Up to 5 MB each. Use an existing section name to add more photos.</p>
+        <button class="button" type="submit" :disabled="savingPhoto">{{ savingPhoto ? 'Saving photos…' : 'Add photos' }}</button>
         <p role="status">{{ photoMessage }}</p>
       </form>
-      <div v-if="gallery.length" class="gallery-grid">
-        <figure v-for="photo in gallery" :key="photo.src">
+      <div v-if="gallery.length">
+        <section v-for="section in gallerySections" :key="section.name" class="gallery-section">
+        <h2>{{ section.name }}</h2>
+        <div class="gallery-grid">
+        <figure v-for="photo in section.photos" :key="photo.src">
           <a :href="photo.src" target="_blank" rel="noopener noreferrer" :aria-label="'View photo: ' + photo.alt"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></a>
-          <figcaption v-if="photo.caption"><h2>{{ photo.caption }}</h2></figcaption>
         </figure>
+        </div>
+        </section>
       </div>
       <div v-else class="gallery-empty"><span aria-hidden="true">▧</span><h2>Photos coming soon</h2><p>We’re getting our gallery ready. Visit us to explore the collection in person.</p><a class="button" href="/#contact">Find us</a></div>
     </section>
