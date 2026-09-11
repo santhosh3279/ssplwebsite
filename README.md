@@ -22,3 +22,25 @@ Set `catalogue.url` to a full HTTPS link or a PDF path such as `/catalogues/chet
 ## Pages
 
 Home: `#home`; About: `#about`; Catalogue: `#catalogues`. The shop and contact navigation links lead to their corresponding sections. Contact numbers and the supplied address are in `src/App.vue`.
+
+## Production deployment without building on the server
+
+The production `dist/` folder is committed to Git. On the development machine, rebuild after changing source files, photos, or catalogue links and commit the generated files together with the source changes:
+
+```sh
+npm run build
+git add -A
+git commit -m "Update website and production build"
+git push origin main
+```
+
+On the Nginx VM, clone this repository once (for example to `/var/www/ssplwebsite`) and configure the site's Nginx `root` as `/var/www/ssplwebsite/dist`. Serve only `dist`, not the repository root. Ensure the Nginx worker can read this directory.
+
+For future updates on the Nginx VM:
+
+```sh
+cd /var/www/ssplwebsite
+git pull --ff-only origin main
+```
+
+No Node.js, npm installation, or build is required on the Nginx VM. An Nginx reload is only needed when its configuration changes.
