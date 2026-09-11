@@ -21,7 +21,7 @@ Set `catalogue.url` to a full HTTPS link or a PDF path such as `/catalogues/chet
 
 ## Pages
 
-Home: `#home`; About: `#about`; Catalogue: `#catalogues`. The shop and contact navigation links lead to their corresponding sections. Contact numbers and the supplied address are in `src/App.vue`.
+Home: `#home`; About: `#about`; Catalogue links open `https://billing.chettiyarkada.in/frontend/catelogue` in the same tab. The shop and contact navigation links lead to their corresponding sections. Contact numbers and the supplied address are in `src/App.vue`.
 
 ## Production deployment without building on the server
 
@@ -44,3 +44,7 @@ git pull --ff-only origin main
 ```
 
 No Node.js, npm installation, or build is required on the Nginx VM. An Nginx reload is only needed when its configuration changes.
+
+## Upload the logo in development
+
+Run `npm run dev` and click **Upload logo photo** above the header. Choose a PNG, JPG or WebP image up to 5 MB. The image is resized to at most 1024 pixels and saved as `public/logo.png`; `src/logo.json` records its path. It appears in both the header and footer and persists after restarting development. Rebuild and commit these files along with `dist/` to publish the logo. The upload button and endpoint are available only on the development server.

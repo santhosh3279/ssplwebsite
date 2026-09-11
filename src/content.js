@@ -7,4 +7,4 @@ export const shops = [
 ]
 
 // One shared catalogue for all three shops. Add its HTTPS URL or public PDF path.
-export const catalogue = { url: '' }
+export const catalogue = { url: 'https://billing.chettiyarkada.in/frontend/catelogue' }
