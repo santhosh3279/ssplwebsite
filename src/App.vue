@@ -42,7 +42,8 @@ const page = computed(() => route.value === '#about' ? 'about' : route.value ===
 function navigate() { route.value = window.location.hash || '#home'; menuOpen.value = false; if (['#home', '#about', '#catalogues'].includes(route.value)) window.scrollTo(0, 0) }
 onMounted(() => window.addEventListener('hashchange', navigate))
 onUnmounted(() => window.removeEventListener('hashchange', navigate))
-const directions = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('41/2395 First Floor Market Road Palakkad')
+const directions = 'https://maps.app.goo.gl/DpkR3AsjUxGMbEXUA'
+const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=embed'
 </script>
 
 <template>
@@ -60,7 +61,7 @@ const directions = 'https://www.google.com/maps/search/?api=1&query=' + encodeUR
   <main id="main">
     <template v-if="page === 'home'">
       <section class="hero wrap">
-        <div class="hero-copy"><p class="eyebrow"><span class="little-line"></span> YOUR NEIGHBOURHOOD SHOPS IN PALAKKAD</p><h1>A familiar name.<br>A welcoming<br><em>place to shop.</em></h1><p class="intro">Welcome to Chettiyar Kada. Discover our three shops, explore what’s in store, and come say hello on Market Road.</p><div class="actions"><a class="button" href="#shops">Explore our shops <span>↗</span></a><a class="text-link" href="#about">Get to know us <span>→</span></a></div><div class="hero-note"><span class="small-star">✳</span> Rooted in Palakkad. Here for you.</div></div>
+        <div class="hero-copy"><p class="eyebrow"><span class="little-line"></span> YOUR NEIGHBOURHOOD SHOPS IN PALAKKAD</p><h1>A Vast Collection of<br><em>Rare House Hold Articles</em></h1><p class="intro">Welcome to Chettiyar Kada. Discover our three shops, explore what’s in store, and come say hello on Market Road.</p><div class="actions"><a class="button" href="#shops">Explore our shops <span>↗</span></a><a class="text-link" href="#about">Get to know us <span>→</span></a></div><div class="hero-note"><span class="small-star">✳</span> Rooted in Palakkad. Here for you.</div></div>
         <div class="hero-art" role="img" aria-label="Decorative illustration of a Chettiyar Kada shop"><div class="art-caption">THE CHETTIYAR KADA COLLECTION <span>01 — 03</span></div><div class="sun"></div><div class="arch"><div class="store"><div class="store-roof"></div><div class="store-sign">CHETTIYAR KADA<small>WELCOME TO OUR SHOPS</small></div><div class="awning"></div><div class="store-front"><div class="window"><i></i><i></i><i></i><span>✦</span></div><div class="door"><span>OPEN</span></div><div class="window"><i></i><i></i><i></i><span>✦</span></div></div><div class="step"></div></div><div class="plant plant-left">✳<span>▰</span></div><div class="plant plant-right">✳<span>▰</span></div></div><div class="art-bottom"><span>A little local.<br>A lot of heart.</span><span class="round-seal">THREE SHOPS<br><b>✳</b><br>ONE NAME</span></div></div>
       </section>
       <div class="values"><span>THREE DISTINCT SHOPS</span><i>✦</i><span>ONE CHETTIYAR KADA FAMILY</span><i>✦</i><span>IN THE HEART OF PALAKKAD</span></div>
@@ -72,7 +73,14 @@ const directions = 'https://www.google.com/maps/search/?api=1&query=' + encodeUR
 
     <section id="catalogue-section" class="catalogue-section" :class="{ 'full-catalogue': page === 'catalogues' }"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">TAKE A CLOSER LOOK</p><h2>Our <em>catalogue.</em></h2></div><p>More to discover, all in one place.<br>Browse our shared catalogue online.</p></div><div class="catalogue-list"><div class="catalogue-row"><span class="catalogue-icon">▤</span><span class="catalogue-name"><small>ALL THREE SHOPS</small><h3>Chettiyar Kada Catalogue</h3></span><a v-if="catalogue.url" class="catalogue-link" :href="catalogue.url">View catalogue ↗</a><span v-else class="coming-soon">Coming soon <span>↗</span></span></div></div><p class="catalogue-help">Looking for something specific? <a href="tel:+917012891724">Give us a call →</a></p></div></section>
 
-    <section id="contact" class="contact wrap"><div><p class="eyebrow">COME SAY HELLO</p><h2>Your next visit<br>starts <em>here.</em></h2><p>Find us on Market Road, Palakkad.<br>Call ahead for opening hours and product enquiries.</p><a class="button" :href="directions" target="_blank" rel="noopener noreferrer">Get directions <span>↗</span></a></div><div class="contact-card"><div><span class="contact-symbol">⌖</span><div><p class="eyebrow">OUR ADDRESS</p><address>41/2395 First Floor<br>Market Road<br>Palakkad</address></div></div><div><span class="contact-symbol">↗</span><div><p class="eyebrow">LET’S TALK</p><a href="tel:+917012891724">7012891724 <small>Mobile</small></a><a href="tel:+914912501145">0491 2501145 <small>Landline</small></a></div></div></div></section>
+    <section id="contact" class="contact wrap">
+      <div><p class="eyebrow">COME SAY HELLO</p><h2>Use Maps to <em>Find Us</em></h2></div>
+      <div class="map-preview"><iframe :src="mapPreview" title="Map showing New Chettiyar Kada in Palakkad" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><a :href="directions" target="_blank" rel="noopener noreferrer">Open in Google Maps <span aria-hidden="true">↗</span></a></div>
+      <div class="contact-card">
+        <div><span class="contact-symbol">⌖</span><div><p class="eyebrow">OUR ADDRESS</p><address>41/2395 First Floor<br>Market Road<br>Palakkad</address></div></div>
+        <div><span class="contact-symbol">↗</span><div><p class="eyebrow">LET’S TALK</p><a href="tel:+917012891724">7012891724 <small>Mobile</small></a><a href="tel:+914912501145">0491 2501145 <small>Landline</small></a></div></div>
+      </div>
+    </section>
   </main>
   <footer><div class="wrap footer-main"><a class="brand" href="#home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span>CHETTIYAR KADA<small>THREE SHOPS. ONE FAMILIAR NAME.</small></span></a><div><a href="#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="#about">About us</a><a href="#contact">Contact</a></div></div><div class="wrap footer-bottom"><span>© {{ new Date().getFullYear() }} Chettiyar Kada. All rights reserved.</span><span>With warmth, from Palakkad. <b>✳</b></span></div></footer>
 </template>
