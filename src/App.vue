@@ -74,6 +74,26 @@ function closePhoto() {
 onUnmounted(() => {
   if (enlargedPhoto.value) document.body.style.overflow = previousOverflow
 })
+const deletingPhoto = ref('')
+const deleteMessage = ref('')
+async function deletePhoto(photo) {
+  if (!window.confirm('Delete this photo from the gallery?')) return
+  deletingPhoto.value = photo.src
+  deleteMessage.value = ''
+  try {
+    const response = await fetch('/__dev/gallery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', src: photo.src }),
+    })
+    if (!response.ok) throw new Error(await response.text())
+    deleteMessage.value = 'Photo deleted.'
+  } catch (error) {
+    deleteMessage.value = error.message || 'Could not delete the photo. Please try again.'
+  } finally {
+    deletingPhoto.value = ''
+  }
+}
 const renamingSection = ref('')
 const sectionName = ref('')
 const savingSection = ref(false)
@@ -187,6 +207,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         <p role="status">{{ photoMessage }}</p>
       </form>
       <p v-if="isDevelopment" role="status">{{ renameMessage }}</p>
+      <p v-if="isDevelopment" role="status">{{ deleteMessage }}</p>
       <div v-if="gallery.length">
         <section v-for="section in gallerySections" :key="section.name" class="gallery-section">
         <div class="gallery-section-heading"><h2>{{ section.name }}</h2><button v-if="isDevelopment" type="button" :disabled="savingSection" :aria-label="'Rename section ' + section.name" @click="startRename(section.name)">Rename</button></div>
@@ -198,6 +219,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         <div class="gallery-grid">
         <figure v-for="photo in section.photos" :key="photo.src">
           <button class="gallery-photo-button" type="button" :aria-label="'Enlarge photo: ' + photo.alt" @click="enlargePhoto(photo, $event)"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></button>
+          <button v-if="isDevelopment" class="delete-photo-button" type="button" :disabled="!!deletingPhoto" :aria-label="'Delete photo: ' + photo.alt" @click="deletePhoto(photo)">{{ deletingPhoto === photo.src ? 'Deleting…' : 'Delete photo' }}</button>
         </figure>
         </div>
         </section>

@@ -62,3 +62,5 @@ Gallery uploads accept up to 20 photos at once (5 MB each). Enter a **Section na
 In development, click **Rename** beside a gallery section, edit the section name, and choose **Save name**. All photos in that section move under the updated heading. Existing section names cannot be reused when renaming, to avoid accidental merging.
 
 The enlarged gallery viewer has previous/next arrow buttons and supports the keyboard Left/Right keys. Navigation follows gallery section order and wraps from the last photo to the first.
+
+In development, each gallery photo has a **Delete photo** button. Confirm to remove it from the gallery and delete its uploaded file. A section disappears when its last photo is deleted. Rebuild to publish deletions.

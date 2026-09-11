@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 
 export default function galleryUpload() {
@@ -23,6 +23,24 @@ export default function galleryUpload() {
           let data
           try { data = JSON.parse(Buffer.concat(chunks).toString()) } catch {
             res.statusCode = 400; res.end('Invalid photo upload.'); return
+          }
+          if (data?.action === 'delete') {
+            if (typeof data.src !== 'string' || !/^\/gallery\/[a-f0-9-]+\.png$/.test(data.src)) {
+              res.statusCode = 400; res.end('Invalid photo.'); return
+            }
+            const remove = pending.then(async () => {
+              const metadata = new URL('./src/gallery.json', import.meta.url)
+              const photos = JSON.parse(await readFile(metadata, 'utf8'))
+              if (!photos.some(photo => photo.src === data.src)) return false
+              await writeFile(metadata, JSON.stringify(photos.filter(photo => photo.src !== data.src), null, 2) + '\n')
+              await unlink(new URL(`./public${data.src}`, import.meta.url)).catch(error => {
+                if (error.code !== 'ENOENT') throw error
+              })
+              return true
+            })
+            pending = remove.catch(() => {})
+            if (!await remove) { res.statusCode = 404; res.end('Photo no longer exists.'); return }
+            res.end('Photo deleted.'); return
           }
           const heading = typeof data.heading === 'string' ? data.heading.trim() : ''
           if (data.action === 'rename') {
