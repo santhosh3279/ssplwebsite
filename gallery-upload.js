@@ -25,6 +25,32 @@ export default function galleryUpload() {
             res.statusCode = 400; res.end('Invalid photo upload.'); return
           }
           const heading = typeof data.heading === 'string' ? data.heading.trim() : ''
+          if (data.action === 'rename') {
+            const normalize = value => value.trim().replace(/\s+/g, ' ').toLowerCase()
+            const previous = typeof data.previous === 'string' ? data.previous : ''
+            if (!heading || heading.length > 120 || !previous.trim()) {
+              res.statusCode = 400; res.end('Enter a section name of up to 120 characters.'); return
+            }
+            const rename = pending.then(async () => {
+              const metadata = new URL('./src/gallery.json', import.meta.url)
+              const photos = JSON.parse(await readFile(metadata, 'utf8'))
+              const sectionOf = photo => photo.section || photo.caption || 'Our collection'
+              const matches = photos.filter(photo => normalize(sectionOf(photo)) === normalize(previous))
+              if (!matches.length) return 'Section no longer exists. Refresh and try again.'
+              if (normalize(previous) !== normalize(heading) && photos.some(photo => normalize(sectionOf(photo)) === normalize(heading))) {
+                return 'That section name already exists. Choose a different name.'
+              }
+              for (const photo of matches) {
+                if (photo.alt === sectionOf(photo)) photo.alt = heading
+                photo.section = heading.replace(/\s+/g, ' ')
+              }
+              await writeFile(metadata, JSON.stringify(photos, null, 2) + '\n')
+            })
+            pending = rename.catch(() => {})
+            const error = await rename
+            if (error) { res.statusCode = 409; res.end(error); return }
+            res.end('Section renamed.'); return
+          }
           const images = Array.isArray(data.images) ? data.images : []
           if (!heading || heading.length > 120 || !images.length || images.length > 20) {
             res.statusCode = 400; res.end('Enter a section name and choose 1 to 20 photos.'); return

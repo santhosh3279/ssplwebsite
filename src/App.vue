@@ -46,6 +46,34 @@ const gallerySections = computed(() => {
   }
   return [...sections.values()]
 })
+const renamingSection = ref('')
+const sectionName = ref('')
+const savingSection = ref(false)
+const renameMessage = ref('')
+function startRename(name) {
+  renamingSection.value = name
+  sectionName.value = name
+  renameMessage.value = ''
+}
+async function renameSection() {
+  if (!sectionName.value.trim()) { renameMessage.value = 'Enter a section name.'; return }
+  savingSection.value = true
+  renameMessage.value = ''
+  try {
+    const response = await fetch('/__dev/gallery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'rename', previous: renamingSection.value, heading: sectionName.value.trim() }),
+    })
+    if (!response.ok) throw new Error(await response.text())
+    renamingSection.value = ''
+    renameMessage.value = 'Section renamed.'
+  } catch (error) {
+    renameMessage.value = error.message || 'Could not rename the section.'
+  } finally {
+    savingSection.value = false
+  }
+}
 const photoHeading = ref('')
 const photoInput = ref(null)
 const savingPhoto = ref(false)
@@ -130,9 +158,15 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         <button class="button" type="submit" :disabled="savingPhoto">{{ savingPhoto ? 'Saving photos…' : 'Add photos' }}</button>
         <p role="status">{{ photoMessage }}</p>
       </form>
+      <p v-if="isDevelopment" role="status">{{ renameMessage }}</p>
       <div v-if="gallery.length">
         <section v-for="section in gallerySections" :key="section.name" class="gallery-section">
-        <h2>{{ section.name }}</h2>
+        <div class="gallery-section-heading"><h2>{{ section.name }}</h2><button v-if="isDevelopment" type="button" :disabled="savingSection" :aria-label="'Rename section ' + section.name" @click="startRename(section.name)">Rename</button></div>
+        <form v-if="isDevelopment && renamingSection === section.name" class="section-rename" @submit.prevent="renameSection">
+          <label>Section name <input v-model="sectionName" required maxlength="120" :disabled="savingSection" /></label>
+          <button type="submit" :disabled="savingSection">{{ savingSection ? 'Saving…' : 'Save name' }}</button>
+          <button type="button" :disabled="savingSection" @click="renamingSection = ''; renameMessage = ''">Cancel</button>
+        </form>
         <div class="gallery-grid">
         <figure v-for="photo in section.photos" :key="photo.src">
           <a :href="photo.src" target="_blank" rel="noopener noreferrer" :aria-label="'View photo: ' + photo.alt"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></a>
