@@ -70,3 +70,5 @@ In development, each gallery photo has a **Delete photo** button. Confirm to rem
 The Our Items section replaces the homepage catalogue panel. In development, click **Add topic / item**, enter a topic and item name, then **Add item**. Reuse a topic to list more items beneath it. Entries are saved in `src/items.json` and included in production builds; editing controls only appear in development. The full catalogue remains accessible through the catalogue links.
 
 The item names field accepts comma-separated values, for example `Plates, Tumblers, Brass cooking pot`. Each name becomes a separate item under the chosen topic. Extra spaces and empty entries are ignored, and duplicate names are skipped.
+
+In development, use the **×** beside an item to remove it, or beside a topic heading to remove that section and all its items. Both actions ask for confirmation and save the changes in `src/items.json`.

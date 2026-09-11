@@ -25,6 +25,29 @@ export default function itemsEditor() {
           }
           const clean = value => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : ''
           const topic = clean(data?.topic)
+          if (data?.action === 'delete-topic' || data?.action === 'delete-item') {
+            const name = clean(data.name)
+            if (!topic || (data.action === 'delete-item' && !name)) {
+              res.statusCode = 400; res.end('Choose a topic or item to remove.'); return
+            }
+            const remove = pending.then(async () => {
+              const file = new URL('./src/items.json', import.meta.url)
+              const topics = JSON.parse(await readFile(file, 'utf8'))
+              const index = topics.findIndex(section => section.topic === topic)
+              if (index < 0) return false
+              if (data.action === 'delete-topic') topics.splice(index, 1)
+              else {
+                const itemIndex = topics[index].items.indexOf(name)
+                if (itemIndex < 0) return false
+                topics[index].items.splice(itemIndex, 1)
+              }
+              await writeFile(file, JSON.stringify(topics, null, 2) + '\n')
+              return true
+            })
+            pending = remove.catch(() => {})
+            if (!await remove) { res.statusCode = 404; res.end('This topic or item no longer exists.'); return }
+            res.end(data.action === 'delete-topic' ? 'Section removed.' : 'Item removed.'); return
+          }
           const names = typeof data?.name === 'string' ? data.name.split(',').map(clean).filter(Boolean) : []
           if (!topic || !names.length || topic.length > 120 || names.length > 100 || names.some(name => name.length > 120)) {
             res.statusCode = 400; res.end('Enter a topic and up to 100 comma-separated items, up to 120 characters each.'); return

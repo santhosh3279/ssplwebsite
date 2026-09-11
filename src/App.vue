@@ -173,6 +173,28 @@ const itemTopic = ref('')
 const itemName = ref('')
 const savingItem = ref(false)
 const itemMessage = ref('')
+const removingItem = ref(false)
+const removeItemMessage = ref('')
+async function removeItem(topic, name) {
+  const wholeSection = name === undefined
+  const question = wholeSection ? `Remove the section "${topic}" and all its items?` : `Remove "${name}" from "${topic}"?`
+  if (!window.confirm(question)) return
+  removingItem.value = true
+  removeItemMessage.value = ''
+  try {
+    const response = await fetch('/__dev/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: wholeSection ? 'delete-topic' : 'delete-item', topic, name }),
+    })
+    if (!response.ok) throw new Error(await response.text())
+    removeItemMessage.value = await response.text()
+  } catch (error) {
+    removeItemMessage.value = error.message || 'Could not remove the item or section.'
+  } finally {
+    removingItem.value = false
+  }
+}
 async function addItem() {
   savingItem.value = true
   itemMessage.value = ''
@@ -274,8 +296,9 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
           <button class="button" type="submit" :disabled="savingItem">{{ savingItem ? 'Saving…' : 'Add items' }}</button>
           <p role="status">{{ itemMessage }}</p>
         </form>
-        <div v-if="itemTopics.length" class="items-grid"><article v-for="topic in itemTopics" :key="topic.topic" class="items-topic"><h3>{{ topic.topic }}</h3><ul><li v-for="item in topic.items" :key="item">{{ item }}</li></ul></article></div>
+        <div v-if="itemTopics.length" class="items-grid"><article v-for="topic in itemTopics" :key="topic.topic" class="items-topic"><div class="items-topic-heading"><h3>{{ topic.topic }}</h3><button v-if="isDevelopment" class="item-remove" type="button" :disabled="removingItem" :aria-label="'Remove section ' + topic.topic" title="Remove section" @click="removeItem(topic.topic)">×</button></div><ul><li v-for="item in topic.items" :key="item"><span>{{ item }}</span><button v-if="isDevelopment" class="item-remove" type="button" :disabled="removingItem" :aria-label="'Remove item ' + item" title="Remove item" @click="removeItem(topic.topic, item)">×</button></li></ul></article></div>
         <p v-else class="items-empty">Our item collection is coming soon. Browse the catalogue to explore what’s available.</p>
+        <p v-if="isDevelopment" role="status">{{ removeItemMessage }}</p>
         <p class="catalogue-help"><a :href="catalogue.url">View full catalogue →</a></p>
       </div>
     </section>
