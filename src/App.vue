@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { shops, catalogue, gallery } from './content'
 import logo from './logo.json'
 const isDevelopment = import.meta.env.DEV
@@ -45,6 +45,27 @@ const gallerySections = computed(() => {
     sections.get(key).photos.push(photo)
   }
   return [...sections.values()]
+})
+const enlargedPhoto = ref(null)
+const photoDialog = ref(null)
+let photoTrigger = null
+let previousOverflow = ''
+async function enlargePhoto(photo, event) {
+  photoTrigger = event.currentTarget
+  enlargedPhoto.value = photo
+  await nextTick()
+  previousOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+  photoDialog.value.showModal()
+}
+function closePhoto() {
+  photoDialog.value?.close()
+  document.body.style.overflow = previousOverflow
+  enlargedPhoto.value = null
+  photoTrigger?.focus()
+}
+onUnmounted(() => {
+  if (enlargedPhoto.value) document.body.style.overflow = previousOverflow
 })
 const renamingSection = ref('')
 const sectionName = ref('')
@@ -169,7 +190,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         </form>
         <div class="gallery-grid">
         <figure v-for="photo in section.photos" :key="photo.src">
-          <a :href="photo.src" target="_blank" rel="noopener noreferrer" :aria-label="'View photo: ' + photo.alt"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></a>
+          <button class="gallery-photo-button" type="button" :aria-label="'Enlarge photo: ' + photo.alt" @click="enlargePhoto(photo, $event)"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></button>
         </figure>
         </div>
         </section>
@@ -201,6 +222,13 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         </div></div>
       </div>
     </section>
+    <dialog ref="photoDialog" class="photo-dialog" aria-label="Enlarged gallery photo" @cancel.prevent="closePhoto" @click="($event.target === photoDialog) && closePhoto()">
+      <div v-if="enlargedPhoto" class="photo-dialog-content">
+        <button class="photo-dialog-close" type="button" autofocus aria-label="Close enlarged photo" @click="closePhoto">Close ×</button>
+        <img :src="enlargedPhoto.src" :alt="enlargedPhoto.alt" />
+        <p>{{ enlargedPhoto.section || enlargedPhoto.caption || enlargedPhoto.alt }}</p>
+      </div>
+    </dialog>
   </main>
   <footer><div class="wrap footer-main"><a class="brand" href="/#home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span class="brand-name">CHETTIYAR KADA<small>THREE SHOPS. ONE FAMILIAR NAME.</small></span></a><div><a href="/#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="/gallery" :aria-current="page === 'gallery' ? 'page' : undefined">Gallery</a><a href="/#about">About us</a><a href="/#contact">Contact</a></div></div><div class="wrap footer-bottom"><span>© {{ new Date().getFullYear() }} Chettiyar Kada. All rights reserved.</span><span>With warmth, from Palakkad. <b>✳</b></span></div></footer>
 </template>
