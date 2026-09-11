@@ -60,3 +60,5 @@ On the development gallery page, use **Add a gallery photo** to choose an image 
 Gallery uploads accept up to 20 photos at once (5 MB each). Enter a **Section name** or choose an existing suggestion. Photos are grouped beneath that heading; names differing only in capitalization or spacing are grouped together. Existing photo captions are used as section headings for older uploads.
 
 In development, click **Rename** beside a gallery section, edit the section name, and choose **Save name**. All photos in that section move under the updated heading. Existing section names cannot be reused when renaming, to avoid accidental merging.
+
+The enlarged gallery viewer has previous/next arrow buttons and supports the keyboard Left/Right keys. Navigation follows gallery section order and wraps from the last photo to the first.

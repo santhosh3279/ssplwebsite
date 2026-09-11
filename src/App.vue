@@ -48,6 +48,13 @@ const gallerySections = computed(() => {
 })
 const enlargedPhoto = ref(null)
 const photoDialog = ref(null)
+const viewerPhotos = computed(() => gallerySections.value.flatMap(section => section.photos))
+const viewerIndex = computed(() => viewerPhotos.value.findIndex(photo => photo.src === enlargedPhoto.value?.src))
+function movePhoto(step) {
+  const photos = viewerPhotos.value
+  if (!enlargedPhoto.value || photos.length < 2) return
+  enlargedPhoto.value = photos[(viewerIndex.value + step + photos.length) % photos.length]
+}
 let photoTrigger = null
 let previousOverflow = ''
 async function enlargePhoto(photo, event) {
@@ -222,11 +229,15 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         </div></div>
       </div>
     </section>
-    <dialog ref="photoDialog" class="photo-dialog" aria-label="Enlarged gallery photo" @cancel.prevent="closePhoto" @click="($event.target === photoDialog) && closePhoto()">
+    <dialog ref="photoDialog" class="photo-dialog" aria-label="Enlarged gallery photo" @keydown.left.prevent="movePhoto(-1)" @keydown.right.prevent="movePhoto(1)" @cancel.prevent="closePhoto" @click="($event.target === photoDialog) && closePhoto()">
       <div v-if="enlargedPhoto" class="photo-dialog-content">
         <button class="photo-dialog-close" type="button" autofocus aria-label="Close enlarged photo" @click="closePhoto">Close ×</button>
         <img :src="enlargedPhoto.src" :alt="enlargedPhoto.alt" />
-        <p>{{ enlargedPhoto.section || enlargedPhoto.caption || enlargedPhoto.alt }}</p>
+        <div class="photo-navigation">
+          <button v-if="viewerPhotos.length > 1" type="button" aria-label="Previous photo" @click="movePhoto(-1)">←</button>
+          <p aria-live="polite" aria-atomic="true">{{ enlargedPhoto.section || enlargedPhoto.caption || enlargedPhoto.alt }}<small>{{ viewerIndex + 1 }} / {{ viewerPhotos.length }}</small></p>
+          <button v-if="viewerPhotos.length > 1" type="button" aria-label="Next photo" @click="movePhoto(1)">→</button>
+        </div>
       </div>
     </dialog>
   </main>
