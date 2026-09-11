@@ -16,7 +16,7 @@ export default function itemsEditor() {
           let size = 0
           for await (const chunk of req) {
             size += chunk.length
-            if (size > 4096) { res.statusCode = 413; res.end('Item details are too long.'); return }
+            if (size > 16384) { res.statusCode = 413; res.end('Item details are too long.'); return }
             chunks.push(chunk)
           }
           let data
@@ -25,23 +25,31 @@ export default function itemsEditor() {
           }
           const clean = value => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : ''
           const topic = clean(data?.topic)
-          const name = clean(data?.name)
-          if (!topic || !name || topic.length > 120 || name.length > 120) {
-            res.statusCode = 400; res.end('Enter a topic and item name, up to 120 characters each.'); return
+          const names = typeof data?.name === 'string' ? data.name.split(',').map(clean).filter(Boolean) : []
+          if (!topic || !names.length || topic.length > 120 || names.length > 100 || names.some(name => name.length > 120)) {
+            res.statusCode = 400; res.end('Enter a topic and up to 100 comma-separated items, up to 120 characters each.'); return
           }
           const save = pending.then(async () => {
             const file = new URL('./src/items.json', import.meta.url)
             const topics = JSON.parse(await readFile(file, 'utf8'))
             let section = topics.find(section => section.topic.toLowerCase() === topic.toLowerCase())
             if (!section) { section = { topic, items: [] }; topics.push(section) }
-            if (section.items.some(item => item.toLowerCase() === name.toLowerCase())) return false
-            section.items.push(name)
+            const seen = new Set(section.items.map(item => item.toLowerCase()))
+            let added = 0
+            for (const name of names) {
+              if (seen.has(name.toLowerCase())) continue
+              seen.add(name.toLowerCase())
+              section.items.push(name)
+              added++
+            }
+            if (!added) return 0
             await writeFile(file, JSON.stringify(topics, null, 2) + '\n')
-            return true
+            return added
           })
           pending = save.catch(() => {})
-          if (!await save) { res.statusCode = 409; res.end('That item already exists in this topic.'); return }
-          res.end('Item added.')
+          const added = await save
+          if (!added) { res.statusCode = 409; res.end('All these items already exist in this topic.'); return }
+          res.end(`${added} item${added === 1 ? '' : 's'} added.`)
         } catch {
           res.statusCode = 500; res.end('Could not save the item. Please try again.')
         }

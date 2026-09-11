@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "topic": "Kitchen",
+    "items": [
+      "Dosakkal",
+      "Knives"
+    ]
+  },
+  {
+    "topic": "Hotel",
+    "items": [
+      "FryPan, Big Cheenachatti"
+    ]
+  }
+]

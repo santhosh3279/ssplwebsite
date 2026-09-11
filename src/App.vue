@@ -184,7 +184,7 @@ async function addItem() {
     })
     if (!response.ok) throw new Error(await response.text())
     itemName.value = ''
-    itemMessage.value = 'Item added.'
+    itemMessage.value = await response.text()
   } catch (error) {
     itemMessage.value = error.message || 'Could not add the item.'
   } finally {
@@ -269,9 +269,9 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
           <label for="item-topic">Topic</label>
           <input id="item-topic" v-model="itemTopic" list="item-topics" maxlength="120" required :disabled="savingItem" placeholder="For example, Kitchenware" />
           <datalist id="item-topics"><option v-for="topic in itemTopics" :key="topic.topic" :value="topic.topic" /></datalist>
-          <label for="item-name">Item name</label>
-          <input id="item-name" v-model="itemName" maxlength="120" required :disabled="savingItem" placeholder="For example, Brass cooking pot" />
-          <button class="button" type="submit" :disabled="savingItem">{{ savingItem ? 'Saving…' : 'Add item' }}</button>
+          <label for="item-name">Item names (comma-separated)</label>
+          <input id="item-name" v-model="itemName" maxlength="12000" required :disabled="savingItem" placeholder="Brass cooking pot, Plates, Tumblers" />
+          <button class="button" type="submit" :disabled="savingItem">{{ savingItem ? 'Saving…' : 'Add items' }}</button>
           <p role="status">{{ itemMessage }}</p>
         </form>
         <div v-if="itemTopics.length" class="items-grid"><article v-for="topic in itemTopics" :key="topic.topic" class="items-topic"><h3>{{ topic.topic }}</h3><ul><li v-for="item in topic.items" :key="item">{{ item }}</li></ul></article></div>
