@@ -48,3 +48,9 @@ No Node.js, npm installation, or build is required on the Nginx VM. An Nginx rel
 ## Upload the logo in development
 
 Run `npm run dev` and click **Upload logo photo** above the header. Choose a PNG, JPG or WebP image up to 5 MB. The image is resized to at most 1024 pixels and saved as `public/logo.png`; `src/logo.json` records its path. It appears in both the header and footer and persists after restarting development. Rebuild and commit these files along with `dist/` to publish the logo. The upload button and endpoint are available only on the development server.
+
+## Gallery
+
+Visit `/gallery` using the Gallery link in the header or footer. Add images under `public/gallery/` and entries to the `gallery` array in `src/content.js` with `src`, descriptive `alt`, and optional `caption` fields. Until photos are added, the page shows “Photos coming soon”. Clicking a photo opens the full image in a new tab.
+
+The production build also generates `dist/gallery/index.html`, so Nginx can serve `/gallery` (redirecting to `/gallery/`) with the existing `try_files $uri $uri/ =404` configuration.

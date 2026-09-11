@@ -1,10 +1,18 @@
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
-import { writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(), {
+    name: 'static-gallery-page',
+    apply: 'build',
+    async closeBundle() {
+      const html = await readFile(new URL('./dist/index.html', import.meta.url), 'utf8')
+      await mkdir(new URL('./dist/gallery/', import.meta.url), { recursive: true })
+      await writeFile(new URL('./dist/gallery/index.html', import.meta.url), html.replace('<title>Chettiyar Kada | Our Shops in Palakkad</title>', '<title>Gallery | Chettiyar Kada</title>'))
+    },
+  }, {
     name: 'development-logo-upload',
     apply: 'serve',
     configureServer(server) {
