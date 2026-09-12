@@ -13,9 +13,9 @@ The development server listens on `0.0.0.0`. Run `npm run build` to generate the
 
 ## Add photos and the catalogue
 
-Edit `src/content.js`. Each shop has a `photo` path. The shared `catalogue` object has one `url` for all three shops.
+Run `npm run dev` and click **Upload photo** beneath any of the three shop names. Choose a PNG, JPG or WebP image up to 5 MB. Photos are resized to at most 1600 pixels and saved in `public/photos/`; `src/shops.json` records each shop's photo. Upload again to replace a shop photo. Controls and upload storage are available only on the development server, matching the logo and gallery editors. Rebuild and commit the photos, metadata, and `dist/` to publish them.
 
-Place shop photos in `public/photos/` and set `photo` to a path such as `/photos/new-chettiyar-kada.jpg`. Empty photo paths display designed placeholders. These are spaces for future photos; this static website does not include an upload dashboard or server storage.
+You can also edit photo paths in `src/shops.json` manually. Empty paths display placeholders. The shared catalogue URL is in `src/content.js`.
 
 Set `catalogue.url` to a full HTTPS link or a PDF path such as `/catalogues/chettiyar-kada.pdf` (with the PDF stored in `public/catalogues/`). An empty catalogue URL displays “Coming soon”.
 

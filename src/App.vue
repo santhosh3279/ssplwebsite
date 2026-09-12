@@ -37,6 +37,39 @@ async function uploadLogo(event) {
     event.target.value = ''
   }
 }
+const shopUploads = ref({})
+const shopMessages = ref({})
+const shopPreviews = ref({})
+async function uploadShopPhoto(event, index) {
+  const input = event.target
+  const file = input.files?.[0]
+  if (!file) return
+  shopUploads.value[index] = true
+  shopMessages.value[index] = ''
+  try {
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      throw new Error('Choose a PNG, JPG or WebP image up to 5 MB.')
+    }
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    bitmap.close()
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
+    if (!blob) throw new Error('Could not read this photo. Please try another image.')
+    const response = await fetch(`/__dev/shops?index=${index}`, { method: 'POST', body: blob })
+    if (!response.ok) throw new Error(await response.text())
+    shopPreviews.value[index] = `/photos/shop-${index}.png?v=${Date.now()}`
+    shopMessages.value[index] = 'Photo saved.'
+  } catch (error) {
+    shopMessages.value[index] = error.message || 'Could not upload the photo. Please try again.'
+  } finally {
+    shopUploads.value[index] = false
+    input.value = ''
+  }
+}
 const gallerySections = computed(() => {
   const sections = new Map()
   for (const photo of gallery) {
@@ -282,7 +315,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
 
     <section v-if="page === 'about'" class="about-intro wrap"><p class="eyebrow">A NAME THAT BRINGS US TOGETHER</p><h1>Three shops.<br><em>One local connection.</em></h1><div class="about-columns"><p>Welcome to Chettiyar Kada in Palakkad. Our family of shops brings together New Chettiyar Kada, Chettiyar Kada Super store, and Chettiyar Kada Traditional Stores.</p><p>Explore each shop below, get in touch to ask about products and availability, or visit us on Market Road. We look forward to welcoming you.</p></div></section>
 
-    <section v-if="page === 'home' || page === 'about'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2>Three names. <em>One family.</em></h2></div><p>Find your familiar favourite.<br>Discover somewhere new.</p></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="photo-space" :class="'photo-' + index"><img v-if="shop.photo" :src="shop.photo" :alt="shop.name" /><template v-else><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></template><span class="shop-number">0{{ index + 1 }}</span></div><div class="shop-details"><p class="eyebrow">CHETTIYAR KADA · PALAKKAD</p><h3>{{ shop.name }}</h3><a :href="'tel:+917012891724'">Enquire about this shop <span>↗</span></a></div></article></div></section>
+    <section v-if="page === 'home' || page === 'about'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2>Three names. <em>One family.</em></h2></div><p>Find your familiar favourite.<br>Discover somewhere new.</p></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="photo-space" :class="'photo-' + index"><img v-if="shopPreviews[index] || shop.photo" :src="shopPreviews[index] || shop.photo" :alt="shop.name" /><template v-else><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></template><span class="shop-number">0{{ index + 1 }}</span></div><div class="shop-details"><p class="eyebrow">CHETTIYAR KADA · PALAKKAD</p><h3>{{ shop.name }}</h3><div v-if="isDevelopment" class="shop-photo-editor"><input :id="'shop-photo-' + index" type="file" accept="image/png,image/jpeg,image/webp" hidden :disabled="shopUploads[index]" @change="uploadShopPhoto($event, index)" /><button class="button" type="button" :disabled="shopUploads[index]" :aria-label="'Upload photo for ' + shop.name" @click="$event.currentTarget.previousElementSibling.click()">{{ shopUploads[index] ? 'Saving photo…' : 'Upload photo' }}</button><p role="status">{{ shopMessages[index] || 'PNG, JPG or WebP · Up to 5 MB' }}</p></div><a :href="'tel:+917012891724'">Enquire about this shop <span>↗</span></a></div></article></div></section>
 
     <section v-if="page !== 'gallery'" id="our-items" class="catalogue-section">
       <div class="wrap">
