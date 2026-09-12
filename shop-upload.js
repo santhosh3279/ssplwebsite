@@ -1,16 +1,13 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 
-export default function shopUpload() {
+export default function shopUpload(base = new URL("./", import.meta.url)) {
   let pending = Promise.resolve()
   return {
     name: 'development-shop-upload',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use('/__dev/shops', async (req, res) => {
+      server.middlewares.use('/api/admin/shops', async (req, res) => {
         if (req.method !== 'POST') { res.statusCode = 405; res.end(); return }
-        if (req.headers.origin !== `http://${req.headers.host}`) {
-          res.statusCode = 403; res.end('Upload must come from this development site.'); return
-        }
         const index = new URL(req.url, 'http://localhost').searchParams.get('index')
         if (!/^[0-2]$/.test(index || '')) {
           res.statusCode = 400; res.end('Choose a valid shop.'); return
@@ -28,11 +25,11 @@ export default function shopUpload() {
             res.statusCode = 400; res.end('Please upload a valid PNG image.'); return
           }
           const save = pending.then(async () => {
-            const metadata = new URL('./src/shops.json', import.meta.url)
+            const metadata = new URL('./src/shops.json', base)
             const shops = JSON.parse(await readFile(metadata, 'utf8'))
-            await mkdir(new URL('./public/photos/', import.meta.url), { recursive: true })
+            await mkdir(new URL('./public/photos/', base), { recursive: true })
             const photo = `/photos/shop-${index}.png`
-            await writeFile(new URL(`./public${photo}`, import.meta.url), image)
+            await writeFile(new URL(`./public${photo}`, base), image)
             shops[Number(index)].photo = photo
             await writeFile(metadata, JSON.stringify(shops, null, 2) + '\n')
           })

@@ -11,9 +11,15 @@ npm run dev
 
 The development server listens on `0.0.0.0`. Run `npm run build` to generate the production website in `dist`.
 
+## Login and editing
+
+Open `/login` and sign in as **swarna** using the configured password. After signing in, the website displays upload controls for the logo and all three shops, the gallery editor, item controls, and a sign-out toolbar. The same login protects development and production edits.
+
+**The live server needs the new Node backend for login and editing.** Follow [deployment instructions](deploy/README.md); pulling static `dist/` files alone is insufficient. Production changes save immediately in a persistent data directory, separate from Git. Development edits save in the repository and need the usual build, commit and push.
+
 ## Add photos and the catalogue
 
-Run `npm run dev` and click **Upload photo** beneath any of the three shop names. Choose a PNG, JPG or WebP image up to 5 MB. Photos are resized to at most 1600 pixels and saved in `public/photos/`; `src/shops.json` records each shop's photo. Upload again to replace a shop photo. Controls and upload storage are available only on the development server, matching the logo and gallery editors. Rebuild and commit the photos, metadata, and `dist/` to publish them.
+Run `npm run dev`, sign in at `/login`, and click **Upload photo** beneath any of the three shop names. Choose a PNG, JPG or WebP image up to 5 MB. Photos are resized to at most 1600 pixels and saved in `public/photos/`; `src/shops.json` records each shop's photo. Upload again to replace a shop photo. Controls are available after signing in, matching the logo and gallery editors. Rebuild and commit the photos, metadata, and `dist/` to publish them.
 
 You can also edit photo paths in `src/shops.json` manually. Empty paths display placeholders. The shared catalogue URL is in `src/content.js`.
 
@@ -23,9 +29,9 @@ Set `catalogue.url` to a full HTTPS link or a PDF path such as `/catalogues/chet
 
 Home: `#home`; About: `#about`; Catalogue links open `https://billing.chettiyarkada.in/frontend/catelogue` in the same tab. The shop and contact navigation links lead to their corresponding sections. Contact numbers and the supplied address are in `src/App.vue`.
 
-## Production deployment without building on the server
+## Static deployment without editing
 
-The production `dist/` folder is committed to Git. On the development machine, rebuild after changing source files, photos, or catalogue links and commit the generated files together with the source changes:
+For a read-only website, the production `dist/` folder is committed to Git. For login and live editing, use [the Node deployment](deploy/README.md) instead. On the development machine, rebuild after changing source files, photos, or catalogue links and commit the generated files together with the source changes:
 
 ```sh
 npm run build
@@ -47,7 +53,7 @@ No Node.js, npm installation, or build is required on the Nginx VM. An Nginx rel
 
 ## Upload the logo in development
 
-Run `npm run dev` and click **Upload logo photo** above the header. Choose a PNG, JPG or WebP image up to 5 MB. The image is resized to at most 1024 pixels and saved as `public/logo.png`; `src/logo.json` records its path. It appears in both the header and footer and persists after restarting development. Rebuild and commit these files along with `dist/` to publish the logo. The upload button and endpoint are available only on the development server.
+Run `npm run dev`, sign in at `/login`, and click **Upload logo photo** above the header. Choose a PNG, JPG or WebP image up to 5 MB. The image is resized to at most 1024 pixels and saved as `public/logo.png`; `src/logo.json` records its path. It appears in both the header and footer and persists after restarting development. Rebuild and commit these files along with `dist/` to publish the logo. The upload button and endpoint require a signed-in session.
 
 ## Gallery
 
@@ -55,20 +61,20 @@ Visit `/gallery` using the Gallery link in the header or footer. Add images unde
 
 The production build also generates `dist/gallery/index.html`, so Nginx can serve `/gallery` (redirecting to `/gallery/`) with the existing `try_files $uri $uri/ =404` configuration.
 
-On the development gallery page, use **Add a gallery photo** to choose an image and enter its heading, then click **Add photo**. Photos are saved under `public/gallery/`, and headings in `src/gallery.json`. They persist across restarts and are included in the next production build. Upload controls and the endpoint are development-only.
+On the development gallery page, use **Add a gallery photo** to choose an image and enter its heading, then click **Add photo**. Photos are saved under `public/gallery/`, and headings in `src/gallery.json`. They persist across restarts and are included in the next production build. Upload controls and the endpoint require login; production uses persistent live storage as described above.
 
 Gallery uploads accept up to 20 photos at once (5 MB each). Enter a **Section name** or choose an existing suggestion. Photos are grouped beneath that heading; names differing only in capitalization or spacing are grouped together. Existing photo captions are used as section headings for older uploads.
 
-In development, click **Rename** beside a gallery section, edit the section name, and choose **Save name**. All photos in that section move under the updated heading. Existing section names cannot be reused when renaming, to avoid accidental merging.
+After signing in, click **Rename** beside a gallery section, edit the section name, and choose **Save name**. All photos in that section move under the updated heading. Existing section names cannot be reused when renaming, to avoid accidental merging.
 
 The enlarged gallery viewer has previous/next arrow buttons and supports the keyboard Left/Right keys. Navigation follows gallery section order and wraps from the last photo to the first.
 
-In development, each gallery photo has a **Delete photo** button. Confirm to remove it from the gallery and delete its uploaded file. A section disappears when its last photo is deleted. Rebuild to publish deletions.
+After signing in, each gallery photo has a **Delete photo** button. Confirm to remove it from the gallery and delete its uploaded file. A section disappears when its last photo is deleted. Rebuild to publish deletions.
 
 ## Our Items
 
-The Our Items section replaces the homepage catalogue panel. In development, click **Add topic / item**, enter a topic and item name, then **Add item**. Reuse a topic to list more items beneath it. Entries are saved in `src/items.json` and included in production builds; editing controls only appear in development. The full catalogue remains accessible through the catalogue links.
+The Our Items section replaces the homepage catalogue panel. After signing in, click **Add topic / item**, enter a topic and item name, then **Add item**. Reuse a topic to list more items beneath it. Entries are saved in `src/items.json` and included in production builds; editing controls only appear after login. The full catalogue remains accessible through the catalogue links.
 
 The item names field accepts comma-separated values, for example `Plates, Tumblers, Brass cooking pot`. Each name becomes a separate item under the chosen topic. Extra spaces and empty entries are ignored, and duplicate names are skipped.
 
-In development, use the **×** beside an item to remove it, or beside a topic heading to remove that section and all its items. Both actions ask for confirmation and save the changes in `src/items.json`.
+After signing in, use the **×** beside an item to remove it, or beside a topic heading to remove that section and all its items. Both actions ask for confirmation and save the changes in `src/items.json`.

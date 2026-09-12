@@ -1,0 +1,24 @@
+[Unit]
+Description=Chettiyar Kada website and editor
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/ssplwebsite
+EnvironmentFile=/etc/chettiyar-website.env
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+Environment=DATA_DIR=/var/lib/chettiyar-website
+StateDirectory=chettiyar-website
+ExecStart=/usr/bin/node /var/www/ssplwebsite/server/index.js
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

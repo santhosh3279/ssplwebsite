@@ -1,16 +1,13 @@
 import { readFile, writeFile } from 'node:fs/promises'
 
-export default function itemsEditor() {
+export default function itemsEditor(base = new URL("./", import.meta.url)) {
   let pending = Promise.resolve()
   return {
     name: 'development-items-editor',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use('/__dev/items', async (req, res) => {
+      server.middlewares.use('/api/admin/items', async (req, res) => {
         if (req.method !== 'POST') { res.statusCode = 405; res.end(); return }
-        if (req.headers.origin !== `http://${req.headers.host}`) {
-          res.statusCode = 403; res.end('Use the development site to add items.'); return
-        }
         try {
           const chunks = []
           let size = 0
@@ -31,7 +28,7 @@ export default function itemsEditor() {
               res.statusCode = 400; res.end('Choose a topic or item to remove.'); return
             }
             const remove = pending.then(async () => {
-              const file = new URL('./src/items.json', import.meta.url)
+              const file = new URL('./src/items.json', base)
               const topics = JSON.parse(await readFile(file, 'utf8'))
               const index = topics.findIndex(section => section.topic === topic)
               if (index < 0) return false
@@ -53,7 +50,7 @@ export default function itemsEditor() {
             res.statusCode = 400; res.end('Enter a topic and up to 100 comma-separated items, up to 120 characters each.'); return
           }
           const save = pending.then(async () => {
-            const file = new URL('./src/items.json', import.meta.url)
+            const file = new URL('./src/items.json', base)
             const topics = JSON.parse(await readFile(file, 'utf8'))
             let section = topics.find(section => section.topic.toLowerCase() === topic.toLowerCase())
             if (!section) { section = { topic, items: [] }; topics.push(section) }

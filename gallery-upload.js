@@ -1,17 +1,14 @@
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 
-export default function galleryUpload() {
+export default function galleryUpload(base = new URL("./", import.meta.url)) {
   let pending = Promise.resolve()
   return {
     name: 'development-gallery-upload',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use('/__dev/gallery', async (req, res) => {
+      server.middlewares.use('/api/admin/gallery', async (req, res) => {
         if (req.method !== 'POST') { res.statusCode = 405; res.end(); return }
-        if (req.headers.origin !== `http://${req.headers.host}`) {
-          res.statusCode = 403; res.end('Upload must come from this development site.'); return
-        }
         try {
           const chunks = []
           let size = 0
@@ -29,11 +26,11 @@ export default function galleryUpload() {
               res.statusCode = 400; res.end('Invalid photo.'); return
             }
             const remove = pending.then(async () => {
-              const metadata = new URL('./src/gallery.json', import.meta.url)
+              const metadata = new URL('./src/gallery.json', base)
               const photos = JSON.parse(await readFile(metadata, 'utf8'))
               if (!photos.some(photo => photo.src === data.src)) return false
               await writeFile(metadata, JSON.stringify(photos.filter(photo => photo.src !== data.src), null, 2) + '\n')
-              await unlink(new URL(`./public${data.src}`, import.meta.url)).catch(error => {
+              await unlink(new URL(`./public${data.src}`, base)).catch(error => {
                 if (error.code !== 'ENOENT') throw error
               })
               return true
@@ -50,7 +47,7 @@ export default function galleryUpload() {
               res.statusCode = 400; res.end('Enter a section name of up to 120 characters.'); return
             }
             const rename = pending.then(async () => {
-              const metadata = new URL('./src/gallery.json', import.meta.url)
+              const metadata = new URL('./src/gallery.json', base)
               const photos = JSON.parse(await readFile(metadata, 'utf8'))
               const sectionOf = photo => photo.section || photo.caption || 'Our collection'
               const matches = photos.filter(photo => normalize(sectionOf(photo)) === normalize(previous))
@@ -78,12 +75,12 @@ export default function galleryUpload() {
             res.statusCode = 400; res.end('Each photo must be a valid PNG smaller than 5 MB.'); return
           }
           const save = pending.then(async () => {
-            const metadata = new URL('./src/gallery.json', import.meta.url)
+            const metadata = new URL('./src/gallery.json', base)
             const photos = JSON.parse(await readFile(metadata, 'utf8'))
-            await mkdir(new URL('./public/gallery/', import.meta.url), { recursive: true })
+            await mkdir(new URL('./public/gallery/', base), { recursive: true })
             for (const image of buffers) {
               const filename = `${randomUUID()}.png`
-              await writeFile(new URL(`./public/gallery/${filename}`, import.meta.url), image)
+              await writeFile(new URL(`./public/gallery/${filename}`, base), image)
               photos.push({ src: `/gallery/${filename}`, alt: heading, section: heading })
             }
             await writeFile(metadata, JSON.stringify(photos, null, 2) + '\n')
