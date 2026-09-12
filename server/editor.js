@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
+import { fileURLToPath } from 'node:url'
+import { developmentContent } from './content.js'
 import shops from '../shop-upload.js'
 import gallery from '../gallery-upload.js'
 import items from '../items-editor.js'
@@ -10,7 +12,7 @@ const derive = promisify(scrypt)
 const credentials = JSON.parse(await readFile(new URL('./credentials.json', import.meta.url), 'utf8'))
 const lifetime = 8 * 60 * 60 * 1000
 const send = (res, code, message) => { res.statusCode = code; res.end(message) }
-export function createEditor({ base = new URL('../', import.meta.url), origin = process.env.APP_ORIGIN, now = Date.now } = {}) {
+export function createEditor({ base = new URL('../', import.meta.url), origin = process.env.APP_ORIGIN, now = Date.now, allowItems = false, loadContent = () => developmentContent(fileURLToPath(base), process.env.PRODUCTION_ORIGIN) } = {}) {
   const sessions = new Map()
   const attempts = new Map()
   const routes = new Map()
@@ -30,8 +32,8 @@ export function createEditor({ base = new URL('../', import.meta.url), origin = 
     const secure = expectedOrigin.startsWith('https:')
     try {
       if (path === '/api/content' && req.method === 'GET') {
-        const content = {}
-        for (const name of ['shops', 'gallery', 'items', 'logo']) content[name] = JSON.parse(await readFile(new URL(`./src/${name}.json`, base), 'utf8'))
+        if (!allowItems && req.headers['x-content-preview']) return send(res, 409, 'PRODUCTION_ORIGIN must point to the production server.')
+        const content = await loadContent()
         res.setHeader('Content-Type', 'application/json')
         res.end(JSON.stringify(content)); return
       }
@@ -73,6 +75,7 @@ export function createEditor({ base = new URL('../', import.meta.url), origin = 
         return send(res, 200, 'Signed out.')
       }
       if (!authenticated) return send(res, 401, 'Your session has ended. Sign in again at /login.')
+      if (path === '/api/admin/items' && !allowItems) return send(res, 403, 'Manage Our Items on the production website.')
       const handler = routes.get(path)
       if (!handler) return send(res, 404, 'Not found.')
       await handler(req, res)
@@ -83,5 +86,5 @@ export function createEditor({ base = new URL('../', import.meta.url), origin = 
   }
 }
 export default function editorPlugin() {
-  return { name: 'authenticated-editor', apply: 'serve', configureServer(server) { server.middlewares.use(createEditor()) } }
+  return { name: 'authenticated-editor', apply: 'serve', configureServer(server) { server.middlewares.use(createEditor({ loadContent: () => developmentContent(fileURLToPath(new URL('../', import.meta.url)), process.env.PRODUCTION_ORIGIN || 'https://www.chettiyarkada.in') })) } }
 }

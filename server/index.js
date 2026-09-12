@@ -1,23 +1,16 @@
 import { createServer } from 'node:http'
-import { readFile, mkdir, cp, access, writeFile, stat } from 'node:fs/promises'
+import { stat } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
 import { resolve, extname, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEditor } from './editor.js'
+import { initializeProduction, productionContent } from './content.js'
 
 const repository = fileURLToPath(new URL('../', import.meta.url))
-export async function createWebsite({ dataDir = process.env.DATA_DIR || resolve(repository, 'data'), origin = process.env.APP_ORIGIN } = {}) {
+export async function createWebsite({ dataDir = process.env.DATA_DIR || resolve(repository, 'data'), origin = process.env.APP_ORIGIN, repositoryDir = repository } = {}) {
   const data = resolve(dataDir)
-  await mkdir(data, { recursive: true })
-  try { await access(resolve(data, '.initialized')) } catch {
-    await mkdir(resolve(data, 'src'), { recursive: true })
-    await cp(resolve(repository, 'public'), resolve(data, 'public'), { recursive: true, force: false })
-    for (const name of ['shops', 'gallery', 'items', 'logo']) {
-      await cp(resolve(repository, `src/${name}.json`), resolve(data, `src/${name}.json`), { force: false })
-    }
-    await writeFile(resolve(data, '.initialized'), 'Persistent website content\n')
-  }
-  const editor = createEditor({ base: pathToFileURL(data + sep), origin })
+  await initializeProduction(data, repositoryDir)
+  const editor = createEditor({ base: pathToFileURL(data + sep), origin, allowItems: true, loadContent: () => productionContent(data, repositoryDir) })
   const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.pdf': 'application/pdf', '.woff2': 'font/woff2', '.json': 'application/json' }
   return createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -31,9 +24,9 @@ export async function createWebsite({ dataDir = process.env.DATA_DIR || resolve(
           res.statusCode = 404; res.end('Not found.'); return
         }
         const page = ['/', '/login', '/login/', '/gallery', '/gallery/'].includes(pathname)
-        const liveAsset = pathname === '/logo.png' || pathname.startsWith('/photos/') || pathname.startsWith('/gallery/') && !page
-        const folder = liveAsset ? resolve(data, 'public') : resolve(repository, 'dist')
-        const relative = page ? 'index.html' : pathname.slice(1)
+        const liveAsset = pathname.startsWith('/production-media/')
+        const folder = liveAsset ? resolve(data, 'public') : resolve(repositoryDir, 'dist')
+        const relative = page ? 'index.html' : liveAsset ? pathname.slice('/production-media/'.length) : pathname.slice(1)
         const filename = resolve(folder, relative)
         if (!filename.startsWith(folder + sep)) { res.statusCode = 404; res.end('Not found.'); return }
         let info

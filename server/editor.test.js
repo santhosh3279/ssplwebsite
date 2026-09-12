@@ -50,10 +50,10 @@ test('production login protects all editors and persists public content across r
     assert.equal((await request('/api/admin/shops?index=0', Buffer.from('not an image'))).status, 400)
     for (let index = 0; index < 3; index++) {
       assert.equal((await request(`/api/admin/shops?index=${index}`, png)).status, 200)
-      assert.deepEqual(Buffer.from(await (await request(`/photos/shop-${index}.png`)).arrayBuffer()), png)
+      assert.deepEqual(Buffer.from(await (await request(`/production-media/photos/shop-${index}.png`)).arrayBuffer()), png)
     }
     assert.equal((await request('/api/admin/logo', png)).status, 200)
-    assert.deepEqual(Buffer.from(await (await request('/logo.png')).arrayBuffer()), png)
+    assert.deepEqual(Buffer.from(await (await request('/production-media/logo.png')).arrayBuffer()), png)
     assert.equal((await request('/api/admin/items', { topic: 'Test topic', name: 'Cup, Plate' })).status, 200)
     let content = await (await request('/api/content')).json()
     assert.deepEqual(content.items.find(v => v.topic === 'Test topic').items, ['Cup', 'Plate'])
@@ -66,7 +66,7 @@ test('production login protects all editors and persists public content across r
     assert.equal((await request('/api/admin/gallery', { action: 'rename', previous: 'Test gallery', heading: 'New heading' })).status, 200)
     content = await (await request('/api/content')).json()
     assert.equal(content.gallery.find(v => v.src === photo.src).section, 'New heading')
-    assert.equal((await request('/api/admin/gallery', { action: 'delete', src: photo.src })).status, 200)
+    assert.equal((await request('/api/admin/gallery', { action: 'delete', src: photo.editSrc })).status, 200)
     assert.equal((await request(photo.src)).status, 404)
     assert.equal((await request('/api/admin/items', { topic: 'Temporary topic', name: 'Temporary item' })).status, 200)
     assert.equal((await request('/api/admin/items', { action: 'delete-topic', topic: 'Temporary topic' })).status, 200)
@@ -80,7 +80,7 @@ test('production login protects all editors and persists public content across r
     content = await (await request('/api/content')).json()
     assert.deepEqual(content.items.find(v => v.topic === 'Test topic').items, ['Plate'])
     assert.equal(content.gallery.length, before.gallery.length)
-    assert.deepEqual(Buffer.from(await (await request('/photos/shop-0.png')).arrayBuffer()), png)
+    assert.deepEqual(Buffer.from(await (await request('/production-media/photos/shop-0.png')).arrayBuffer()), png)
     assert.deepEqual(await (await request('/api/session')).json(), { authenticated: false })
   } finally {
     if (server?.listening) await close(server)

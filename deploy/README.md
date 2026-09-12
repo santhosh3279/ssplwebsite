@@ -34,7 +34,17 @@ The server binds to loopback port 3000. `APP_ORIGIN` checks prevent cross-site w
 
 ## Persistent content and updates
 
-On first start, the server seeds `/var/lib/chettiyar-website` from the committed `public/` images and `src/shops.json`, `src/gallery.json`, `src/items.json`, and `src/logo.json`. Later starts preserve that directory. Back it up: it contains the live photos and content. Live edits take effect immediately without rebuilding or pushing Git and are not automatically copied back to the repository.
+Production and development photos now have independent storage:
+
+- Development uploads stay in the repository's `public/` folder with metadata in `src/shops.json` and `src/gallery.json`. Build, commit and push to publish them. The production website reads this set after each Git update.
+- Production uploads stay in `/var/lib/chettiyar-website/public/` and are served under `/production-media/`. Its `src/shops.json` and `src/gallery.json` describe only production uploads. Git updates do not overwrite this set.
+- The website combines both sets. Each shop displays both photos when available; gallery sections include photos from both sources. Uploading replaces only that environment's shop photo. Gallery deletion and renaming affect only the current environment's photos; imported photos have no editing controls.
+- The brand uses the production logo when present, otherwise the development logo.
+- **Our Items uses only `/var/lib/chettiyar-website/src/items.json`.** New production installs start with an empty list, never seeded from repository items. Existing production items are preserved. Manage items while signed in on the production website; development item writes are rejected.
+
+On upgrade from the previous seeded-storage implementation, the server creates `migration-backup/` inside the data directory. It removes only copied photo metadata that still matches the development metadata and file contents exactly. Distinct production uploads and all existing production items are retained, and original image files are left in place. This migration runs once. If an old copy cannot be confidently identified, it is retained as production content.
+
+Back up the entire data directory. Production edits take effect immediately without rebuilding or pushing Git. The public `/api/content` response supplies merged photos and production items; the browser never falls back to bundled development items if this API is unavailable.
 
 Future code updates:
 
@@ -44,11 +54,17 @@ git pull --ff-only origin main
 sudo systemctl restart chettiyar-website
 ```
 
-Repository photo/metadata updates do not overwrite existing live data. To transfer live content back to the repository, deliberately copy the data directory's `src/*.json` and `public/` files into the matching repository paths, then build, commit and push.
+## Development preview
 
-## Development
+Run `npm run dev`, visit `/login`, and sign in. Photo editing saves to repository `src/` and `public/` files for building and committing.
 
-Run `npm run dev`, visit `/login`, and sign in with the same account. Editing now requires login in development too. Development changes still save to repository `src/` and `public/` files for building and committing.
+The development server reads production content from **https://www.chettiyarkada.in/api/content**. It combines current local photos with production uploads and displays the production items read-only. To preview another production server:
+
+```sh
+PRODUCTION_ORIGIN=https://another-production-host npm run dev
+```
+
+`PRODUCTION_ORIGIN` must point to the Node production backend, not a Vite development server. If production is unavailable, local photos remain visible and Our Items shows an unavailable message; development items are never substituted. No production login credentials or cookies are sent for this public read.
 
 To test the production backend locally with isolated persistent storage:
 
@@ -58,4 +74,4 @@ APP_ORIGIN=http://localhost:3000 npm start
 
 Open `http://localhost:3000/login`. Local data defaults to the Git-ignored `data/` folder. Set `DATA_DIR` to use another directory. Set `APP_ORIGIN` when accessing development behind an HTTPS proxy as well.
 
-Run `npm test` for integration coverage of authentication, uploads, gallery/item edits, sessions, and persistence.
+Run `npm test` for integration coverage of authentication, separate photo sources, gallery/item edits, migration, production-only items, sessions, and persistence.

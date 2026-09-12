@@ -2,10 +2,13 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { shops as initialShops, catalogue, gallery as initialGallery } from './content'
 import logo from './logo.json'
-import initialItems from './items.json'
-const shops = ref(initialShops)
-const gallery = ref(initialGallery)
-const itemTopics = ref(initialItems)
+const shops = ref(initialShops.map(shop => ({ ...shop, photos: shop.photo ? [{ src: shop.photo, source: 'development' }] : [] })))
+const gallery = ref(initialGallery.map(photo => ({ ...photo, source: 'development', editable: import.meta.env.DEV })))
+const itemTopics = ref([])
+const itemsAvailable = ref(false)
+const itemsLoading = ref(true)
+const itemsEditable = ref(false)
+const canEditItems = computed(() => canEdit.value && itemsEditable.value)
 const canEdit = ref(false)
 const isLogin = /^\/login\/?$/.test(window.location.pathname)
 const username = ref('')
@@ -20,7 +23,10 @@ async function refreshContent() {
   const content = await response.json()
   shops.value = content.shops
   gallery.value = content.gallery
-  itemTopics.value = content.items
+  itemTopics.value = content.itemsAvailable ? content.items : []
+  itemsAvailable.value = content.itemsAvailable === true
+  itemsEditable.value = content.editItems === true
+  itemsLoading.value = false
   logoUrl.value = content.logo.url
 }
 async function editorFetch(url, options) {
@@ -65,7 +71,7 @@ onMounted(async () => {
     else if (isLogin) loginMessage.value = 'Sign-in is not available on this server yet.'
   } catch { if (isLogin) loginMessage.value = 'Could not connect. Please try again.' }
   finally { checkingSession.value = false }
-  try { await refreshContent() } catch { /* Static hosting uses the content bundled at build time. */ }
+  try { await refreshContent() } catch { itemsLoading.value = false; itemsAvailable.value = false }
 })
 const logoUrl = ref(logo.url)
 const logoInput = ref(null)
@@ -91,7 +97,7 @@ async function uploadLogo(event) {
     if (!blob) throw new Error('Could not read this image. Please try another photo.')
     const response = await editorFetch('/api/admin/logo', { method: 'POST', body: blob })
     if (!response.ok) throw new Error(await response.text())
-    logoUrl.value = `/logo.png?v=${Date.now()}`
+    logoUrl.value = `${logoUrl.value.split('?')[0]}?v=${Date.now()}`
     uploadMessage.value = 'Logo saved.'
   } catch (error) {
     uploadMessage.value = error.message || 'Could not upload the logo. Please try again.'
@@ -102,7 +108,6 @@ async function uploadLogo(event) {
 }
 const shopUploads = ref({})
 const shopMessages = ref({})
-const shopPreviews = ref({})
 async function uploadShopPhoto(event, index) {
   const input = event.target
   const file = input.files?.[0]
@@ -124,7 +129,7 @@ async function uploadShopPhoto(event, index) {
     if (!blob) throw new Error('Could not read this photo. Please try another image.')
     const response = await editorFetch(`/api/admin/shops?index=${index}`, { method: 'POST', body: blob })
     if (!response.ok) throw new Error(await response.text())
-    shopPreviews.value[index] = `/photos/shop-${index}.png?v=${Date.now()}`
+    for (const photo of shops.value[index].photos) photo.src = `${photo.src.split('?')[0]}?v=${Date.now()}`
     shopMessages.value[index] = 'Photo saved.'
   } catch (error) {
     shopMessages.value[index] = error.message || 'Could not upload the photo. Please try again.'
@@ -181,7 +186,7 @@ async function deletePhoto(photo) {
     const response = await editorFetch('/api/admin/gallery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', src: photo.src }),
+      body: JSON.stringify({ action: 'delete', src: photo.editSrc || photo.src }),
     })
     if (!response.ok) throw new Error(await response.text())
     deleteMessage.value = 'Photo deleted.'
@@ -347,7 +352,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         <p role="alert">{{ loginMessage }}</p>
       </form>
     </section>
-    <section v-if="page === 'home' || page === 'about'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2 class="shops-caption">A Vast Collection of <em>Rare House Hold Articles</em></h2></div></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="photo-space" :class="'photo-' + index"><img v-if="shopPreviews[index] || shop.photo" :src="shopPreviews[index] || shop.photo" :alt="shop.name" /><template v-else><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></template></div><div class="shop-details"><p class="eyebrow">CHETTIYAR KADA · PALAKKAD</p><h3>{{ shop.name }}</h3><div v-if="canEdit" class="shop-photo-editor"><input :id="'shop-photo-' + index" type="file" accept="image/png,image/jpeg,image/webp" hidden :disabled="shopUploads[index]" @change="uploadShopPhoto($event, index)" /><button class="button" type="button" :disabled="shopUploads[index]" :aria-label="'Upload photo for ' + shop.name" @click="$event.currentTarget.previousElementSibling.click()">{{ shopUploads[index] ? 'Saving photo…' : 'Upload photo' }}</button><p role="status">{{ shopMessages[index] || 'PNG, JPG or WebP · Up to 5 MB' }}</p></div><a :href="'tel:+917012891724'">Enquire about this shop <span>↗</span></a></div></article></div></section>
+    <section v-if="page === 'home' || page === 'about'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2 class="shops-caption">A Vast Collection of <em>Rare House Hold Articles</em></h2></div></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="shop-photos"><div v-for="photo in shop.photos" :key="photo.source" class="photo-space" :class="'photo-' + index"><img :src="photo.src" :alt="shop.name" /></div><div v-if="!shop.photos.length" class="photo-space" :class="'photo-' + index"><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></div></div><div class="shop-details"><p class="eyebrow">CHETTIYAR KADA · PALAKKAD</p><h3>{{ shop.name }}</h3><div v-if="canEdit" class="shop-photo-editor"><input :id="'shop-photo-' + index" type="file" accept="image/png,image/jpeg,image/webp" hidden :disabled="shopUploads[index]" @change="uploadShopPhoto($event, index)" /><button class="button" type="button" :disabled="shopUploads[index]" :aria-label="'Upload photo for ' + shop.name" @click="$event.currentTarget.previousElementSibling.click()">{{ shopUploads[index] ? 'Saving photo…' : 'Upload photo' }}</button><p role="status">{{ shopMessages[index] || 'PNG, JPG or WebP · Up to 5 MB' }}</p></div><a :href="'tel:+917012891724'">Enquire about this shop <span>↗</span></a></div></article></div></section>
     <section v-if="page === 'gallery'" class="gallery-page wrap">
       <p class="eyebrow">A CLOSER LOOK AT CHETTIYAR KADA</p>
       <h1>Our <em>Gallery</em></h1>
@@ -367,7 +372,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       <p v-if="canEdit" role="status">{{ deleteMessage }}</p>
       <div v-if="gallery.length">
         <section v-for="section in gallerySections" :key="section.name" class="gallery-section">
-        <div class="gallery-section-heading"><h2>{{ section.name }}</h2><button v-if="canEdit" type="button" :disabled="savingSection" :aria-label="'Rename section ' + section.name" @click="startRename(section.name)">Rename</button></div>
+        <div class="gallery-section-heading"><h2>{{ section.name }}</h2><button v-if="canEdit && section.photos.some(photo => photo.editable !== false)" type="button" :disabled="savingSection" :aria-label="'Rename section ' + section.name" @click="startRename(section.name)">Rename</button></div>
         <form v-if="canEdit && renamingSection === section.name" class="section-rename" @submit.prevent="renameSection">
           <label>Section name <input v-model="sectionName" required maxlength="120" :disabled="savingSection" /></label>
           <button type="submit" :disabled="savingSection">{{ savingSection ? 'Saving…' : 'Save name' }}</button>
@@ -376,7 +381,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         <div class="gallery-grid">
         <figure v-for="photo in section.photos" :key="photo.src">
           <button class="gallery-photo-button" type="button" :aria-label="'Enlarge photo: ' + photo.alt" @click="enlargePhoto(photo, $event)"><img :src="photo.src" :alt="photo.alt" loading="lazy" /></button>
-          <button v-if="canEdit" class="delete-photo-button" type="button" :disabled="!!deletingPhoto" :aria-label="'Delete photo: ' + photo.alt" @click="deletePhoto(photo)">{{ deletingPhoto === photo.src ? 'Deleting…' : 'Delete photo' }}</button>
+          <button v-if="canEdit && photo.editable !== false" class="delete-photo-button" type="button" :disabled="!!deletingPhoto" :aria-label="'Delete photo: ' + photo.alt" @click="deletePhoto(photo)">{{ deletingPhoto === photo.src ? 'Deleting…' : 'Delete photo' }}</button>
         </figure>
         </div>
         </section>
@@ -392,8 +397,8 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
 
     <section v-if="page !== 'gallery' && page !== 'login'" id="our-items" class="catalogue-section">
       <div class="wrap">
-        <div class="section-heading"><div><h2>Our <em>Items</em></h2></div><button v-if="canEdit" class="button items-add-button" type="button" :aria-expanded="itemEditorOpen" aria-controls="items-editor" @click="itemEditorOpen = !itemEditorOpen">{{ itemEditorOpen ? 'Close editor' : 'Add topic / item' }}</button></div>
-        <form v-if="canEdit && itemEditorOpen" id="items-editor" class="gallery-editor" @submit.prevent="addItem">
+        <div class="section-heading"><div><h2>Our <em>Items</em></h2></div><button v-if="canEditItems" class="button items-add-button" type="button" :aria-expanded="itemEditorOpen" aria-controls="items-editor" @click="itemEditorOpen = !itemEditorOpen">{{ itemEditorOpen ? 'Close editor' : 'Add topic / item' }}</button></div>
+        <form v-if="canEditItems && itemEditorOpen" id="items-editor" class="gallery-editor" @submit.prevent="addItem">
           <label for="item-topic">Topic</label>
           <input id="item-topic" v-model="itemTopic" list="item-topics" maxlength="120" required :disabled="savingItem" placeholder="For example, Kitchenware" />
           <datalist id="item-topics"><option v-for="topic in itemTopics" :key="topic.topic" :value="topic.topic" /></datalist>
@@ -402,9 +407,9 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
           <button class="button" type="submit" :disabled="savingItem">{{ savingItem ? 'Saving…' : 'Add items' }}</button>
           <p role="status">{{ itemMessage }}</p>
         </form>
-        <div v-if="itemTopics.length" class="items-grid"><article v-for="topic in itemTopics" :key="topic.topic" class="items-topic"><div class="items-topic-heading"><h3>{{ topic.topic }}</h3><button v-if="canEdit" class="item-remove" type="button" :disabled="removingItem" :aria-label="'Remove section ' + topic.topic" title="Remove section" @click="removeItem(topic.topic)">×</button></div><ul><li v-for="item in topic.items" :key="item"><span>{{ item }}</span><button v-if="canEdit" class="item-remove" type="button" :disabled="removingItem" :aria-label="'Remove item ' + item" title="Remove item" @click="removeItem(topic.topic, item)">×</button></li></ul></article></div>
-        <p v-else class="items-empty">Our item collection is coming soon. Browse the catalogue to explore what’s available.</p>
-        <p v-if="canEdit" role="status">{{ removeItemMessage }}</p>
+        <div v-if="itemTopics.length" class="items-grid"><article v-for="topic in itemTopics" :key="topic.topic" class="items-topic"><div class="items-topic-heading"><h3>{{ topic.topic }}</h3><button v-if="canEditItems" class="item-remove" type="button" :disabled="removingItem" :aria-label="'Remove section ' + topic.topic" title="Remove section" @click="removeItem(topic.topic)">×</button></div><ul><li v-for="item in topic.items" :key="item"><span>{{ item }}</span><button v-if="canEditItems" class="item-remove" type="button" :disabled="removingItem" :aria-label="'Remove item ' + item" title="Remove item" @click="removeItem(topic.topic, item)">×</button></li></ul></article></div>
+        <p v-else-if="itemsLoading" class="items-empty" role="status">Loading our items…</p><p v-else-if="!itemsAvailable" class="items-empty" role="status">Our items are temporarily unavailable. Please try again later.</p><p v-else class="items-empty">Our item collection is coming soon. Browse the catalogue to explore what’s available.</p>
+        <p v-if="canEditItems" role="status">{{ removeItemMessage }}</p>
         <p class="catalogue-help"><a :href="catalogue.url">View full catalogue →</a></p>
       </div>
     </section>

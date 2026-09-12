@@ -2,79 +2,56 @@
 
 Vue + Vite website for the three Chettiyar Kada shops in Palakkad.
 
-## Run
+## Run and sign in
 
 ```sh
 npm install
 npm run dev
 ```
 
-The development server listens on `0.0.0.0`. Run `npm run build` to generate the production website in `dist`.
+The development server listens on `0.0.0.0`. Open `/login` and sign in as **swarna** with the configured password to edit photos. The same login enables the production editors and a sign-out toolbar.
 
-## Login and editing
+**Production login and content require the Node backend.** Follow [deployment instructions](deploy/README.md). Pulling only static files does not enable login or production items.
 
-Open `/login` and sign in as **swarna** using the configured password. After signing in, the website displays upload controls for the logo and all three shops, the gallery editor, item controls, and a sign-out toolbar. The same login protects development and production edits.
+## Development and production photos
 
-**The live server needs the new Node backend for login and editing.** Follow [deployment instructions](deploy/README.md); pulling static `dist/` files alone is insufficient. Production changes save immediately in a persistent data directory, separate from Git. Development edits save in the repository and need the usual build, commit and push.
+Development uploads save images in `public/` and metadata in `src/shops.json`, `src/gallery.json`, and `src/logo.json`. Build, commit and push to publish those photos.
 
-## Add photos and the catalogue
+Production uploads save separately in the server's persistent `DATA_DIR`, outside Git, and use `/production-media/` URLs. The website combines development and production shop photos and gallery entries. Uploading a shop photo replaces only that environment's photo. Both photos appear when a shop has one from each source. The brand uses the production logo when available, otherwise the development logo.
 
-Run `npm run dev`, sign in at `/login`, and click **Upload photo** beneath any of the three shop names. Choose a PNG, JPG or WebP image up to 5 MB. Photos are resized to at most 1600 pixels and saved in `public/photos/`; `src/shops.json` records each shop's photo. Upload again to replace a shop photo. Controls are available after signing in, matching the logo and gallery editors. Rebuild and commit the photos, metadata, and `dist/` to publish them.
+Development previews also read production uploads from `https://www.chettiyarkada.in/api/content`. Override the address with `PRODUCTION_ORIGIN` when starting Vite. If the production API is unavailable, local photos remain visible.
 
-You can also edit photo paths in `src/shops.json` manually. Empty paths display placeholders. The shared catalogue URL is in `src/content.js`.
-
-Set `catalogue.url` to a full HTTPS link or a PDF path such as `/catalogues/chettiyar-kada.pdf` (with the PDF stored in `public/catalogues/`). An empty catalogue URL displays “Coming soon”.
-
-## Pages
-
-Home: `#home`; About: `#about`; Catalogue links open `https://billing.chettiyarkada.in/frontend/catelogue` in the same tab. The shop and contact navigation links lead to their corresponding sections. Contact numbers and the supplied address are in `src/App.vue`.
-
-## Static deployment without editing
-
-For a read-only website, the production `dist/` folder is committed to Git. For login and live editing, use [the Node deployment](deploy/README.md) instead. On the development machine, rebuild after changing source files, photos, or catalogue links and commit the generated files together with the source changes:
-
-```sh
-npm run build
-git add -A
-git commit -m "Update website and production build"
-git push origin main
-```
-
-On the Nginx VM, clone this repository once (for example to `/var/www/ssplwebsite`) and configure the site's Nginx `root` as `/var/www/ssplwebsite/dist`. Serve only `dist`, not the repository root. Ensure the Nginx worker can read this directory.
-
-For future updates on the Nginx VM:
-
-```sh
-cd /var/www/ssplwebsite
-git pull --ff-only origin main
-```
-
-No Node.js, npm installation, or build is required on the Nginx VM. An Nginx reload is only needed when its configuration changes.
-
-## Upload the logo in development
-
-Run `npm run dev`, sign in at `/login`, and click **Upload logo photo** above the header. Choose a PNG, JPG or WebP image up to 5 MB. The image is resized to at most 1024 pixels and saved as `public/logo.png`; `src/logo.json` records its path. It appears in both the header and footer and persists after restarting development. Rebuild and commit these files along with `dist/` to publish the logo. The upload button and endpoint require a signed-in session.
+Signed-in upload controls accept PNG, JPG or WebP images up to 5 MB. Shop and gallery photos are resized to at most 1600 pixels; logos to 1024 pixels. Empty shop photo paths show placeholders.
 
 ## Gallery
 
-Visit `/gallery` using the Gallery link in the header or footer. Add images under `public/gallery/` and entries to `src/gallery.json` with `src`, descriptive `alt`, and optional `caption` fields. Until photos are added, the page shows “Photos coming soon”. Clicking a photo enlarges it in an overlay. Close it with the Close button, Escape, or a click outside the image panel.
+Visit `/gallery`. Upload up to 20 photos at once and enter a section name, or choose an existing name to add photos to that section. Section names differing only in capitalization or spacing are grouped together.
 
-The production build also generates `dist/gallery/index.html`, so Nginx can serve `/gallery` (redirecting to `/gallery/`) with the existing `try_files $uri $uri/ =404` configuration.
+Click a photo to enlarge it. Navigate with the arrow buttons or Left/Right keys. Close with the Close button, Escape, or a click outside the image panel.
 
-On the development gallery page, use **Add a gallery photo** to choose an image and enter its heading, then click **Add photo**. Photos are saved under `public/gallery/`, and headings in `src/gallery.json`. They persist across restarts and are included in the next production build. Upload controls and the endpoint require login; production uses persistent live storage as described above.
-
-Gallery uploads accept up to 20 photos at once (5 MB each). Enter a **Section name** or choose an existing suggestion. Photos are grouped beneath that heading; names differing only in capitalization or spacing are grouped together. Existing photo captions are used as section headings for older uploads.
-
-After signing in, click **Rename** beside a gallery section, edit the section name, and choose **Save name**. All photos in that section move under the updated heading. Existing section names cannot be reused when renaming, to avoid accidental merging.
-
-The enlarged gallery viewer has previous/next arrow buttons and supports the keyboard Left/Right keys. Navigation follows gallery section order and wraps from the last photo to the first.
-
-After signing in, each gallery photo has a **Delete photo** button. Confirm to remove it from the gallery and delete its uploaded file. A section disappears when its last photo is deleted. Rebuild to publish deletions.
+Each environment can rename or delete only its own gallery photos. Imported photos are visible without editing controls. Deleting the final photo in a section removes that section. Development edits require a rebuild to publish; production edits appear immediately.
 
 ## Our Items
 
-The Our Items section replaces the homepage catalogue panel. After signing in, click **Add topic / item**, enter a topic and item name, then **Add item**. Reuse a topic to list more items beneath it. Entries are saved in `src/items.json` and included in production builds; editing controls only appear after login. The full catalogue remains accessible through the catalogue links.
+Our Items comes **only from production server data**. There is no development JSON fallback in the browser. New production storage starts with an empty item list; existing production items remain intact during upgrades.
 
-The item names field accepts comma-separated values, for example `Plates, Tumblers, Brass cooking pot`. Each name becomes a separate item under the chosen topic. Extra spaces and empty entries are ignored, and duplicate names are skipped.
+Sign in on the production website to add topics and comma-separated item names, remove items, or remove entire topics. Reuse a topic to add more items. Spaces and duplicate names are normalized. Deletion asks for confirmation.
 
-After signing in, use the **×** beside an item to remove it, or beside a topic heading to remove that section and all its items. Both actions ask for confirmation and save the changes in `src/items.json`.
+Development displays the live production list read-only and rejects item write requests. When the production API is unavailable, the page shows an unavailable message instead of development items.
+
+## Pages and catalogue
+
+Home: `/#home`; shops: `/#shops`; About: `/#about`; items: `/#our-items`; gallery: `/gallery`; login: `/login`.
+
+The shared catalogue link is configured in `src/content.js`. It currently opens `https://billing.chettiyarkada.in/frontend/catelogue`. Contact details are in `src/App.vue`.
+
+## Build, test and deploy
+
+```sh
+npm test
+npm run build
+```
+
+The committed `dist/` folder includes static entry pages for `/gallery` and `/login`. After every successful build, commit the task's source changes and generated files, then push the current branch to origin. Include development uploads when publishing photo changes.
+
+The production Node backend serves built assets, merges both photo sets, and saves live content independently of Git. Follow [the deployment guide](deploy/README.md) for Nginx, systemd, persistent storage, migration, and updates. The VM does not need to build the frontend.
