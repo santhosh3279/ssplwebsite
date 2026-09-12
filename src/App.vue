@@ -50,7 +50,11 @@ async function signIn() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: username.value, password: password.value }),
     })
-    if (!response.ok) throw new Error(response.status === 404 ? 'Sign-in is not available on this server yet.' : await response.text())
+    const message = await response.text()
+    if ([404, 405, 502, 503, 504].includes(response.status) || /^\s*</.test(message)) {
+      throw new Error('Sign-in is temporarily unavailable. Please try again later.')
+    }
+    if (!response.ok) throw new Error(message || 'Could not sign in. Please try again.')
     password.value = ''
     window.location.assign('/#shops')
   } catch (error) { loginMessage.value = error.message || 'Could not sign in. Please try again.' }

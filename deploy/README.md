@@ -10,7 +10,7 @@ These examples use `/var/www/ssplwebsite`, Nginx, systemd, and Node.js 22.12+ (N
 2. Create `/etc/chettiyar-website.env` with your exact public origin, including HTTPS and without a trailing slash:
 
    ```ini
-   APP_ORIGIN=https://your-actual-website-domain
+   APP_ORIGIN=https://www.chettiyarkada.in
    ```
 
 3. Copy `deploy/chettiyar-website.service` to `/etc/systemd/system/chettiyar-website.service`. Ensure the service user can read the repository. Then run:
@@ -75,3 +75,26 @@ APP_ORIGIN=http://localhost:3000 npm start
 Open `http://localhost:3000/login`. Local data defaults to the Git-ignored `data/` folder. Set `DATA_DIR` to use another directory. Set `APP_ORIGIN` when accessing development behind an HTTPS proxy as well.
 
 Run `npm test` for integration coverage of authentication, separate photo sources, gallery/item edits, migration, production-only items, sessions, and persistence.
+
+## Login returns an Nginx 405 error
+
+A `405 Not Allowed` HTML response from `POST /api/login` means Nginx is handling the request without reaching the website login handler. This is a deployment routing problem, not a rejected password.
+
+On the production VM, first check the backend:
+
+```sh
+sudo systemctl status chettiyar-website
+curl -i http://127.0.0.1:3000/api/session
+```
+
+The second command should return JSON with `authenticated: false`. If the service is missing, complete the production setup above. If it is failing, inspect `sudo journalctl -u chettiyar-website -n 50 --no-pager`.
+
+Ensure the HTTPS Nginx server block for `www.chettiyarkada.in` uses the proxy in `deploy/nginx-location.conf`, replacing its static `location /`. Check that a more specific `/api/` location does not intercept these requests. Then:
+
+```sh
+sudo nginx -t
+sudo systemctl reload nginx
+curl -i https://www.chettiyarkada.in/api/session
+```
+
+The public URL must return the same JSON response. A webpage here means requests are still reaching static hosting. Once the proxy is working, retry `/login`.
