@@ -307,9 +307,6 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       <div v-else class="gallery-empty"><span aria-hidden="true">▧</span><h2>Photos coming soon</h2><p>We’re getting our gallery ready. Visit us to explore the collection in person.</p><a class="button" href="/#contact">Find us</a></div>
     </section>
     <template v-if="page === 'home'">
-      <section class="hero wrap">
-        <div class="hero-copy"><p class="eyebrow"><span class="little-line"></span> YOUR NEIGHBOURHOOD SHOPS IN PALAKKAD</p><h1>A Vast Collection of<br><em>Rare House Hold Articles</em></h1><p class="intro">Welcome to Chettiyar Kada. Discover our three shops, explore what’s in store, and come say hello on Market Road.</p><div class="actions"><a class="button" href="/#shops">Explore our shops <span>↗</span></a><a class="text-link" href="/#about">Get to know us <span>→</span></a></div><div class="hero-note"><span class="small-star">✳</span> Rooted in Palakkad. Here for you.</div></div>
-      </section>
       <div class="values"><span>THREE DISTINCT SHOPS</span><i>✦</i><span>ONE CHETTIYAR KADA FAMILY</span><i>✦</i><span>IN THE HEART OF PALAKKAD</span></div>
     </template>
 
