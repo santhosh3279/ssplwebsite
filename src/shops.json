@@ -1,5 +1,14 @@
 [
-  { "name": "New Chettiyar Kada", "photo": "" },
-  { "name": "Chettiyar Kada Super store", "photo": "" },
-  { "name": "Chettiyar Kada Traditional Stores", "photo": "" }
+  {
+    "name": "New Chettiyar Kada",
+    "photo": "/photos/shop-0.png"
+  },
+  {
+    "name": "Chettiyar Kada Super store",
+    "photo": "/photos/shop-1.png"
+  },
+  {
+    "name": "Chettiyar Kada Traditional Stores",
+    "photo": "/photos/shop-2.png"
+  }
 ]
