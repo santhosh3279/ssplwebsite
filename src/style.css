@@ -32,3 +32,5 @@
 .items-topic-heading{display:flex;align-items:start;justify-content:space-between;gap:12px}.item-remove{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:32px;height:32px;margin-left:8px;border:1px solid #ad5448;border-radius:50%;background:#fff5f2;color:#943b30;font-size:23px;cursor:pointer;vertical-align:middle}.item-remove:disabled{opacity:.5;cursor:wait}.items-topic li{margin-bottom:8px}
 
 .shop-photo-editor{margin-bottom:20px}.shop-photo-editor p{font-size:13px;margin:8px 0;color:#73766b}.shop-photo-editor button:disabled{opacity:.6;cursor:wait}
+
+.shops-caption{font-size:clamp(24px,3.4vw,42px);white-space:nowrap;letter-spacing:-.5px}@media(max-width:700px){.shops-caption{font-size:32px;white-space:normal}}
