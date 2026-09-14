@@ -39,4 +39,4 @@
 
 .shop-photos{display:grid;gap:12px}
 
-#shops{padding-top:24px}@media(max-width:700px){#shops{padding-top:16px}}
+#shops{padding-top:24px;padding-bottom:24px}@media(max-width:700px){#shops{padding-top:16px;padding-bottom:16px}}
