@@ -393,7 +393,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       <div v-else class="gallery-empty"><span aria-hidden="true">▧</span><h2>Photos coming soon</h2><p>We’re getting our gallery ready. Visit us to explore the collection in person.</p><a class="button" href="/#contact">Find us</a></div>
     </section>
     <template v-if="page === 'home'">
-      <div class="values"><span>THREE DISTINCT SHOPS</span><i>✦</i><span>ONE CHETTIYAR KADA FAMILY</span><i>✦</i><span>IN THE HEART OF PALAKKAD</span></div>
+      <div class="values"><span>THREE DISTINCT SHOPS</span><i>✦</i><span>One Family</span><i>✦</i><span>IN THE HEART OF PALAKKAD</span></div>
     </template>
 
     <section v-if="page === 'about'" class="about-intro wrap"><p class="eyebrow">A NAME THAT BRINGS US TOGETHER</p><h1>Three shops.<br><em>One local connection.</em></h1><div class="about-columns"><p>Welcome to Chettiyar Kada in Palakkad. Our family of shops brings together New Chettiyar Kada, Chettiyar Kada Super store, and Chettiyar Kada Traditional Stores.</p><p>Explore each shop above, get in touch to ask about products and availability, or visit us on Market Road. We look forward to welcoming you.</p></div></section>
