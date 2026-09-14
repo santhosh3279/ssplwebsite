@@ -38,3 +38,5 @@
 .editor-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:20px;padding-top:14px;padding-bottom:14px;background:#f0eee5;font-size:16px}.editor-toolbar span{font-weight:700}.editor-toolbar a,.editor-notice a{text-decoration:underline}.editor-toolbar button{margin-left:auto;border:1px solid #244a3b;background:white;padding:8px 14px;cursor:pointer}.editor-notice{font-size:16px;padding-top:12px}.login-page{padding-top:50px;padding-bottom:60px;min-height:65vh}.login-page h1{font-size:64px}.login-page>p{font-size:18px}.login-form{max-width:480px}.login-form input:disabled{opacity:.6}@media(max-width:700px){.login-page h1{font-size:48px}.editor-toolbar{gap:12px;font-size:14px}}
 
 .shop-photos{display:grid;gap:12px}
+
+#shops{padding-top:24px}@media(max-width:700px){#shops{padding-top:16px}}
