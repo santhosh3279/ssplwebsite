@@ -330,7 +330,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
 </script>
 
 <template>
-  <div class="topbar"><a href="tel:+917012891724">Call us <span>+91 70128 91724 ↗</span></a></div>
+  <div class="topbar"><span class="topbar-label">Call us</span><a href="tel:+917012891724" aria-label="Call mobile +91 70128 91724"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 3 3 5-3 3a16 16 0 0 0 6 6l3-3 5 3v3a2 2 0 0 1-2 2C9 21 3 15 2 5a2 2 0 0 1 2-2Z"/></svg><span>+91 70128 91724</span></a><a href="tel:+914912501145" aria-label="Call landline 0491 2501145"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V5c4-3 14-3 18 0v4h-5V6H8v3Z"/><path d="m7 11-4 7v3h18v-3l-4-7Z"/><circle cx="12" cy="16" r="2"/></svg><span>0491 2501145</span></a></div>
   <div v-if="canEdit" class="editor-toolbar wrap"><span>Editing website</span><a href="/#shops">Shops &amp; items</a><a href="/gallery">Gallery</a><button type="button" @click="signOut">Sign out</button></div>
   <p v-if="editorMessage" class="wrap editor-notice" role="status">{{ editorMessage }} <a v-if="!canEdit" href="/login">Sign in</a></p>
   <div v-if="canEdit && !isLogin" class="logo-editor wrap">
