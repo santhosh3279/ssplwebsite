@@ -330,7 +330,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
 </script>
 
 <template>
-  <div class="topbar"><span>Three shops. One familiar name.</span><a href="tel:+917012891724">Call us <span>+91 70128 91724 ↗</span></a></div>
+  <div class="topbar"><a href="tel:+917012891724">Call us <span>+91 70128 91724 ↗</span></a></div>
   <div v-if="canEdit" class="editor-toolbar wrap"><span>Editing website</span><a href="/#shops">Shops &amp; items</a><a href="/gallery">Gallery</a><button type="button" @click="signOut">Sign out</button></div>
   <p v-if="editorMessage" class="wrap editor-notice" role="status">{{ editorMessage }} <a v-if="!canEdit" href="/login">Sign in</a></p>
   <div v-if="canEdit && !isLogin" class="logo-editor wrap">
@@ -441,5 +441,5 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       </div>
     </dialog>
   </main>
-  <footer><div class="wrap footer-main"><a class="brand" href="/#home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span class="brand-name">CHETTIYAR KADA<small>THREE SHOPS. ONE FAMILIAR NAME.</small></span></a><div><a href="/#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="/#our-items">Our Items</a><a href="/gallery" :aria-current="page === 'gallery' ? 'page' : undefined">Gallery</a><a href="/#about">About us</a><a href="/#contact">Contact</a></div></div><div class="wrap footer-bottom"><span>© {{ new Date().getFullYear() }} Chettiyar Kada. All rights reserved.</span><a href="/login">Website login</a><span>With warmth, from Palakkad. <b>✳</b></span></div></footer>
+  <footer><div class="wrap footer-main"><a class="brand" href="/#home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span class="brand-name">CHETTIYAR KADA</span></a><div><a href="/#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="/#our-items">Our Items</a><a href="/gallery" :aria-current="page === 'gallery' ? 'page' : undefined">Gallery</a><a href="/#about">About us</a><a href="/#contact">Contact</a></div></div><div class="wrap footer-bottom"><span>© {{ new Date().getFullYear() }} Chettiyar Kada. All rights reserved.</span><a href="/login">Website login</a><span>With warmth, from Palakkad. <b>✳</b></span></div></footer>
 </template>
