@@ -356,7 +356,7 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
         <p role="alert">{{ loginMessage }}</p>
       </form>
     </section>
-    <section v-if="page === 'home' || page === 'about'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2 class="shops-caption">A Vast Collection of <em>Rare House Hold Articles</em></h2></div></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="shop-photos"><div v-for="photo in shop.photos" :key="photo.source" class="photo-space" :class="'photo-' + index"><img :src="photo.src" :alt="shop.name" /></div><div v-if="!shop.photos.length" class="photo-space" :class="'photo-' + index"><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></div></div><div class="shop-details"><h3>{{ shop.name }}</h3><div v-if="canEdit" class="shop-photo-editor"><input :id="'shop-photo-' + index" type="file" accept="image/png,image/jpeg,image/webp" hidden :disabled="shopUploads[index]" @change="uploadShopPhoto($event, index)" /><button class="button" type="button" :disabled="shopUploads[index]" :aria-label="'Upload photo for ' + shop.name" @click="$event.currentTarget.previousElementSibling.click()">{{ shopUploads[index] ? 'Saving photo…' : 'Upload photo' }}</button><p role="status">{{ shopMessages[index] || 'PNG, JPG or WebP · Up to 5 MB' }}</p></div></div></article></div></section>
+    <section v-if="page === 'home'" id="shops" class="section wrap"><div class="section-heading"><div><p class="eyebrow">MEET OUR SHOPS</p><h2 class="shops-caption">A Vast Collection of <em>Rare House Hold Articles</em></h2></div></div><div class="shop-grid"><article v-for="(shop, index) in shops" :key="shop.name" class="shop-card"><div class="shop-photos"><div v-for="photo in shop.photos" :key="photo.source" class="photo-space" :class="'photo-' + index"><img :src="photo.src" :alt="shop.name" /></div><div v-if="!shop.photos.length" class="photo-space" :class="'photo-' + index"><span class="photo-icon" aria-hidden="true">▧</span><span>A glimpse of our shop</span><small>PHOTOS COMING SOON</small></div></div><div class="shop-details"><h3>{{ shop.name }}</h3><div v-if="canEdit" class="shop-photo-editor"><input :id="'shop-photo-' + index" type="file" accept="image/png,image/jpeg,image/webp" hidden :disabled="shopUploads[index]" @change="uploadShopPhoto($event, index)" /><button class="button" type="button" :disabled="shopUploads[index]" :aria-label="'Upload photo for ' + shop.name" @click="$event.currentTarget.previousElementSibling.click()">{{ shopUploads[index] ? 'Saving photo…' : 'Upload photo' }}</button><p role="status">{{ shopMessages[index] || 'PNG, JPG or WebP · Up to 5 MB' }}</p></div></div></article></div></section>
     <section v-if="page === 'gallery'" class="gallery-page wrap">
       <p class="eyebrow">A CLOSER LOOK AT CHETTIYAR KADA</p>
       <h1>Our <em>Gallery</em></h1>
@@ -396,10 +396,24 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
       <div class="values"><span>THREE DISTINCT SHOPS</span><i>✦</i><span>ONE FAMILY</span><i>✦</i><span>IN THE HEART OF PALAKKAD</span></div>
     </template>
 
-    <section v-if="page === 'about'" class="about-intro wrap"><p class="eyebrow">A NAME THAT BRINGS US TOGETHER</p><h1>Three shops.<br><em>One local connection.</em></h1><div class="about-columns"><p>Welcome to Chettiyar Kada in Palakkad. Our family of shops brings together New Chettiyar Kada, Chettiyar Kada Super store, and Chettiyar Kada Traditional Stores.</p><p>Explore each shop above, get in touch to ask about products and availability, or visit us on Market Road. We look forward to welcoming you.</p></div></section>
+    <template v-if="page === 'about'">
+      <section class="about-intro wrap" aria-labelledby="about-title">
+        <p class="eyebrow">CHETTIYAR KADA · PALAKKAD</p>
+        <h1 id="about-title">About <em>Us</em></h1>
+        <div class="about-columns">
+          <p>Welcome to Chettiyar Kada in Palakkad. Our family of shops brings together New Chettiyar Kada, Chettiyar Kada Super store, and Chettiyar Kada Traditional Stores.</p>
+          <p>Explore our collection of household articles, get in touch to ask about products and availability, or visit us on Market Road. We look forward to welcoming you.</p>
+        </div>
+      </section>
+      <section class="about-history section wrap" aria-labelledby="history-title">
+        <p class="eyebrow">OUR STORY</p>
+        <h2 id="history-title">Our <em>History</em></h2>
+        <p>We look forward to sharing the story of Chettiyar Kada here soon.</p>
+      </section>
+    </template>
 
 
-    <section v-if="page !== 'gallery' && page !== 'login'" id="our-items" class="catalogue-section">
+    <section v-if="page === 'home' || page === 'catalogues'" id="our-items" class="catalogue-section">
       <div class="wrap">
         <div class="section-heading"><div><h2>Our <em>Items</em></h2></div><button v-if="canEditItems" class="button items-add-button" type="button" :aria-expanded="itemEditorOpen" aria-controls="items-editor" @click="itemEditorOpen = !itemEditorOpen">{{ itemEditorOpen ? 'Close editor' : 'Add topic / item' }}</button></div>
         <form v-if="canEditItems && itemEditorOpen" id="items-editor" class="gallery-editor" @submit.prevent="addItem">

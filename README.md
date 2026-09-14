@@ -55,3 +55,5 @@ npm run build
 The committed `dist/` folder includes static entry pages for `/gallery` and `/login`. After every successful build, commit the task's source changes and generated files, then push the current branch to origin. Include development uploads when publishing photo changes.
 
 The production Node backend serves built assets, merges both photo sets, and saves live content independently of Git. Follow [the deployment guide](deploy/README.md) for Nginx, systemd, persistent storage, migration, and updates. The VM does not need to build the frontend.
+
+The About Us page (`/#about`) contains the introduction, Our History section, and existing address, map, and phone numbers. Replace the history placeholder in `src/App.vue` when the business history is provided.
