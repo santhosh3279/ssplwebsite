@@ -320,6 +320,20 @@ async function addItem() {
 }
 const route = ref(window.location.hash || '#home')
 const menuOpen = ref(false)
+const stickyMenu = ref(null)
+let menuResizeObserver
+onMounted(() => {
+  const updateMenuHeight = () => {
+    document.documentElement.style.setProperty('--menu-height', `${stickyMenu.value.getBoundingClientRect().height}px`)
+  }
+  updateMenuHeight()
+  menuResizeObserver = new ResizeObserver(updateMenuHeight)
+  menuResizeObserver.observe(stickyMenu.value)
+})
+onUnmounted(() => {
+  menuResizeObserver?.disconnect()
+  document.documentElement.style.removeProperty('--menu-height')
+})
 const isGallery = /^\/gallery\/?$/.test(window.location.pathname)
 const page = computed(() => isLogin ? 'login' : isGallery ? 'gallery' : route.value === '#about' ? 'about' : route.value === '#catalogues' ? 'catalogues' : 'home')
 function navigate() { route.value = window.location.hash || '#home'; menuOpen.value = false; if (['#home', '#about', '#catalogues'].includes(route.value)) window.scrollTo(0, 0) }
@@ -338,11 +352,13 @@ const mapPreview = 'https://www.google.com/maps?cid=523963738585611070&output=em
     <button type="button" :disabled="uploading" @click="logoInput.click()">{{ uploading ? 'Saving logo…' : 'Upload logo photo' }}</button>
     <span role="status">{{ uploadMessage || 'PNG, JPG or WebP · Up to 5 MB' }}</span>
   </div>
+  <div ref="stickyMenu" class="sticky-menu">
   <header class="header wrap">
     <a class="brand" href="/#home" aria-label="Chettiyar Kada home"><img v-if="logoUrl" class="brand-logo" :src="logoUrl" alt="" /><span v-else class="brand-mark">CK<span>✦</span></span><span class="brand-name">CHETTIYAR KADA<small>PALAKKAD, KERALA</small></span></a>
     <button class="menu-toggle" @click="menuOpen = !menuOpen" :aria-expanded="menuOpen" aria-controls="navigation">Menu ☰</button>
     <nav id="navigation" :class="{ open: menuOpen }" aria-label="Main navigation"><a href="/#home" :aria-current="page === 'home' ? 'page' : undefined">Home</a><a href="/#shops">Our shops</a><a :href="catalogue.url">Catalogue</a><a href="/#our-items">Our Items</a><a href="/gallery" :aria-current="page === 'gallery' ? 'page' : undefined">Gallery</a><a href="/#about" :aria-current="page === 'about' ? 'page' : undefined">About us</a><a class="nav-visit" href="/#contact">Visit us <span>↗</span></a></nav>
   </header>
+  </div>
   <main id="main">
     <section v-if="isLogin" class="login-page wrap">
       <p class="eyebrow">CHETTIYAR KADA</p><h1>Website <em>login</em></h1>
