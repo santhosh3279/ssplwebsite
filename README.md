@@ -43,7 +43,7 @@ Development displays the live production list read-only and rejects item write r
 
 Home: `/#home`; shops: `/#shops`; About: `/#about`; items: `/#our-items`; gallery: `/gallery`; login: `/login`.
 
-The shared catalogue link is configured in `src/content.js`. It currently opens `https://billing.chettiyarkada.in/frontend/catalogueviewer`. Contact details are in `src/App.vue`.
+The shared catalogue link is configured in `src/content.js`. It currently opens `https://catalogue.chettiyarkada.in`. Contact details are in `src/App.vue`.
 
 ## Build, test and deploy
 
